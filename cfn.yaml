@@ -64,7 +64,7 @@ Resources:
           App: !Ref App
       Description: Query the data lake and alert if thresholds are breached
       Handler: com.gu.mobiledatalakealerts.Lambda::handler
-      MemorySize: 128
+      MemorySize: 1536
       Role: !GetAtt ExecutionRole.Arn
       Runtime: java8
       Timeout: 60
