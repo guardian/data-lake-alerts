@@ -1,0 +1,19 @@
+stacks: [mobile]
+regions: [eu-west-1]
+
+deployments:
+  mobile-data-lake-alerts:
+    type: aws-lambda
+    parameters:
+      bucket: mobile-dist
+      functionNames: [data-lake-alerts-]
+      fileName: mobile-data-lake-alerts.jar
+      prefixStack: false
+    dependencies: [data-lake-alerts-cfn]
+  mobile-data-lake-alerts-cfn:
+    type: cloud-formation
+    app: mobile-data-lake-alerts
+    parameters:
+      prependStackToCloudFormationStackName: false
+      cloudFormationStackName: mobile-data-lake-alerts
+      templatePath: cfn.yaml
