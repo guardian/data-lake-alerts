@@ -6,10 +6,10 @@ deployments:
     type: aws-lambda
     parameters:
       bucket: mobile-dist
-      functionNames: [data-lake-alerts-]
+      functionNames: [mobile-data-lake-alerts-]
       fileName: mobile-data-lake-alerts.jar
       prefixStack: false
-    dependencies: [data-lake-alerts-cfn]
+    dependencies: [mobile-data-lake-alerts-cfn]
   mobile-data-lake-alerts-cfn:
     type: cloud-formation
     app: mobile-data-lake-alerts
