@@ -52,6 +52,13 @@ Resources:
               Action:
                 - lambda:InvokeFunction
               Resource: "*"
+        - PolicyName: notify
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - SNS:Publish
+              Resource: !Ref SnsTopicForAlerts
   Lambda:
     Type: AWS::Lambda::Function
     Properties:
