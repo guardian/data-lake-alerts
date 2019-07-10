@@ -16,6 +16,9 @@ Parameters:
       - CODE
       - PROD
     Default: CODE
+  SnsTopicForAlerts:
+    Description: SNS Topic used for Anghammarad alerts
+    Type: String
   DeployBucket:
     Description: Bucket where RiffRaff uploads artifacts on deploy
     Type: String
