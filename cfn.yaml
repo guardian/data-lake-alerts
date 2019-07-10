@@ -65,6 +65,7 @@ Resources:
           Stage: !Ref Stage
           Stack: !Ref Stack
           App: !Ref App
+          SnsTopicForAlerts: !Ref SnsTopicForAlerts
       Description: Query the data lake and alert if thresholds are breached
       Handler: com.gu.mobiledatalakealerts.Lambda::handler
       MemorySize: 1536
