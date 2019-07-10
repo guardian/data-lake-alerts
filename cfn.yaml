@@ -16,6 +16,9 @@ Parameters:
       - CODE
       - PROD
     Default: CODE
+  SnsTopicForAlerts:
+    Description: SNS Topic used for Anghammarad alerts
+    Type: String
   DeployBucket:
     Description: Bucket where RiffRaff uploads artifacts on deploy
     Type: String
@@ -49,6 +52,13 @@ Resources:
               Action:
                 - lambda:InvokeFunction
               Resource: "*"
+        - PolicyName: notify
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - SNS:Publish
+              Resource: !Ref SnsTopicForAlerts
   Lambda:
     Type: AWS::Lambda::Function
     Properties:
@@ -62,6 +72,7 @@ Resources:
           Stage: !Ref Stage
           Stack: !Ref Stack
           App: !Ref App
+          SnsTopicForAlerts: !Ref SnsTopicForAlerts
       Description: Query the data lake and alert if thresholds are breached
       Handler: com.gu.mobiledatalakealerts.Lambda::handler
       MemorySize: 1536
