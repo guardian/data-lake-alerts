@@ -4,11 +4,14 @@ import com.amazonaws.services.lambda.runtime.Context
 import com.gu.anghammarad.{ AWS, Anghammarad }
 import com.gu.anghammarad.models._
 import com.gu.mobiledatalakealerts.Features.{ Feature, FrictionScreen }
+import com.gu.mobiledatalakealerts.Lambda.logger
 import com.gu.mobiledatalakealerts.Platforms.{ Platform, iOS }
 import org.slf4j.{ Logger, LoggerFactory }
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{ Failure, Success }
+import scala.util.{ Failure, Success, Try }
 
 class LambdaInput() {
 
@@ -19,10 +22,6 @@ class LambdaInput() {
   var platformId: String = _
   def getPlatformId(): String = platformId
   def setPlatformId(thePlatform: String): Unit = platformId = thePlatform
-
-  var latestBetaPrefix: String = _
-  def getLatestBetaPrefix(): String = latestBetaPrefix
-  def setLatestBetaPrefix(thePrefix: String): Unit = latestBetaPrefix = thePrefix
 
 }
 
@@ -38,6 +37,30 @@ object Env {
     Option(System.getenv("SnsTopicForAlerts")).getOrElse("DEV"))
 }
 
+object Notifications {
+
+  val env = Env()
+
+  def alert(featureId: String, message: Option[String], stack: Stack) = {
+
+    val notificationAttempt = Anghammarad.notify(
+      subject = s"Data Lake Monitoring | Check Failed for ${featureId}",
+      message = message.getOrElse(s"Check failed when monitoring ${featureId}"),
+      sourceSystem = "Data Lake Alerts",
+      channel = Email,
+      target = List(stack),
+      actions = Nil,
+      topicArn = env.snsTopicForAlerts,
+      client = AWS.snsClient(AwsCredentials.notificationCredentials))
+
+    Try(Await.result(notificationAttempt, 10.seconds)) match {
+      case Success(_) => logger.info("Sent notification via Anghammarad")
+      case Failure(ex) => logger.error(s"Failed to send notification due to $ex")
+    }
+  }
+
+}
+
 object Lambda {
 
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
@@ -45,39 +68,18 @@ object Lambda {
   def handler(lambdaInput: LambdaInput, context: Context): Unit = {
     val env = Env()
     logger.info(s"Starting $env")
-    process(env, lambdaInput.latestBetaPrefix, Platforms.platformToMonitor(lambdaInput.platformId), Features.featureToMonitor(lambdaInput.featureId))
+    process(env, Platforms.platformToMonitor(lambdaInput.platformId), Features.featureToMonitor(lambdaInput.featureId))
   }
 
-  def process(env: Env, latestBetaPrefix: String, platform: Platform, feature: Feature): Unit = {
-    logger.info(s"Starting monitoring for $feature on $platform (latest beta prefix is ${latestBetaPrefix})")
-    val query = feature.query(latestBetaPrefix, platform)
-    logger.info(s"Query will be:\n $query")
-    val queryExecutionId = Athena.startQuery(query).getQueryExecutionId
+  def process(env: Env, platform: Platform, feature: Feature): Unit = {
+    logger.info(s"Starting monitoring for $feature on $platform")
+    val monitoringQuery = feature.monitoringQuery(platform)
+    logger.info(s"Query will be:\n ${monitoringQuery.query}")
+    val queryExecutionId = Athena.startQuery(monitoringQuery).getQueryExecutionId
     Athena.waitForQueryToComplete(queryExecutionId)
-    val currentVersions = ImpressionCounts.getImpressionCounts(Athena.retrieveResult(queryExecutionId))
-    logger.info(s"Versions: $currentVersions")
-    val impressionsForVersionPrefix = currentVersions.map(_.impressions).sum
-    val minimumAcceptableValue = query.minimumThresholdInBeta
-    logger.info(s"Expected to find at least $minimumAcceptableValue impressions. Found: $impressionsForVersionPrefix impressions")
-    if (impressionsForVersionPrefix < minimumAcceptableValue) {
-      logger.info(s"Sending notification via Anghammarad")
-      val versionSummary = currentVersions.map(version => s"${version.versionNumber}: ${version.impressions}").mkString("\n")
-      val notificationMessage = s"Expected to find at least $minimumAcceptableValue impressions, but only found: ${impressionsForVersionPrefix}. $versionSummary"
-      val notificationAttempt = Anghammarad.notify(
-        subject = "Data Lake Monitoring",
-        message = notificationMessage,
-        sourceSystem = "Data Lake Alerts",
-        channel = Email,
-        target = List(Stack(platform.id)),
-        actions = Nil,
-        topicArn = env.snsTopicForAlerts,
-        client = AWS.snsClient(AwsCredentials.notificationCredentials))
-      notificationAttempt.onComplete {
-        case Success(_) => logger.info("Sent notification via Anghammarad")
-        case Failure(ex) => logger.error(s"Failed to send notification due to $ex")
-      }
-    } else {
-      logger.info(s"Count is not below the minimum acceptable value of $minimumAcceptableValue")
+    val monitoringResult = feature.monitoringQueryResult(Athena.retrieveResult(queryExecutionId), monitoringQuery.minimumImpressionsThreshold)
+    if (!monitoringResult.resultIsAcceptable) {
+      Notifications.alert(feature.id, monitoringResult.additionalDebugInformation, Stack(platform.id))
     }
   }
 
@@ -85,6 +87,6 @@ object Lambda {
 
 object TestIt {
   def main(args: Array[String]): Unit = {
-    Lambda.process(Env(), "8.0", iOS, FrictionScreen)
+    Lambda.process(Env(), iOS, FrictionScreen)
   }
 }

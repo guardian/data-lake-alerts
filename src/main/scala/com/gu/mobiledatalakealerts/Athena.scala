@@ -16,9 +16,9 @@ object Athena {
     .withCredentials(AwsCredentials.athenaCredentials)
     .build()
 
-  def startQuery(query: MonitoringQuery): StartQueryExecutionResult = {
+  def startQuery(monitoringQuery: MonitoringQuery): StartQueryExecutionResult = {
     val startQueryRequest: StartQueryExecutionRequest = new StartQueryExecutionRequest()
-      .withQueryString(query.query)
+      .withQueryString(monitoringQuery.query)
       .withResultConfiguration(new ResultConfiguration().withOutputLocation("s3://aws-athena-query-results-021353022223-eu-west-1")) // Ophan temp bucket
     client.startQueryExecution(startQueryRequest)
   }
