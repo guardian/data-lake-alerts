@@ -42,7 +42,7 @@ object Features {
         |group by 1""".stripMargin
 
       val minimumImpressionsThreshold = platform match {
-        case Android => 100 //FIXME
+        case Android => 35000
         case iOS => 40000
       }
 
