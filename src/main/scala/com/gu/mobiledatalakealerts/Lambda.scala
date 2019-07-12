@@ -80,6 +80,8 @@ object Lambda {
     val monitoringResult = feature.monitoringQueryResult(Athena.retrieveResult(queryExecutionId), monitoringQuery.minimumImpressionsThreshold)
     if (!monitoringResult.resultIsAcceptable) {
       Notifications.alert(feature.id, monitoringResult.additionalDebugInformation, Stack(platform.id))
+    } else {
+      logger.info(s"Monitoring ran successfully for ${feature.id}. No problems were detected.")
     }
   }
 
