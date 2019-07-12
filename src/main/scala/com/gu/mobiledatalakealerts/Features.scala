@@ -2,7 +2,8 @@ package com.gu.mobiledatalakealerts
 
 import java.time.LocalDate
 
-import com.gu.mobiledatalakealerts.Platforms.Platform
+import com.amazonaws.services.athena.model.ResultSet
+import com.gu.mobiledatalakealerts.Platforms.{ Android, Platform }
 
 object Features {
 
@@ -15,29 +16,58 @@ object Features {
       .getOrElse(throw new RuntimeException(s"Invalid feature specified: features with monitoring are ${allFeaturesWithMonitoring.map(_.id)}"))
   }
 
-  case class MonitoringQuery(query: String, minimumThresholdInBeta: Int)
+  case class MonitoringQuery(query: String, minimumImpressionsThreshold: Int)
+  case class MonitoringQueryResult(resultIsAcceptable: Boolean, additionalDebugInformation: Option[String])
+
   sealed trait Feature {
     val id: String
-    def query(latestBetaPrefix: String, platform: Platform): MonitoringQuery
+    def monitoringQuery(platform: Platform): MonitoringQuery
+    def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult
   }
 
   case object FrictionScreen extends Feature {
 
     val id = "friction_screen"
 
-    def query(latestBetaPrefix: String, platform: Platform): MonitoringQuery = MonitoringQuery(
-      query = s"""
+    def monitoringQuery(platform: Platform): MonitoringQuery = {
+
+      val query = s"""
         |select browser_version, count (distinct page_view_id) as friction_screen_impressions
         |from clean.pageview
         |cross join unnest (component_events) x (c)
-        |where received_date >= date '$yesterday'
+        |where received_date = date '$yesterday'
         |and device_type like '%${platform.id.toUpperCase}%'
         |and c.component.type like '%APP_SCREEN%'
         |and c.component.campaign_code like '%friction%' and c.component.campaign_code like '%subscription_screen%'
-        |and browser_version like '$latestBetaPrefix%'
-        |group by 1
-      """.stripMargin,
-      minimumThresholdInBeta = 100)
+        |group by 1""".stripMargin
+
+      val minimumImpressionsThreshold = platform match {
+        case Android => 35000
+        case iOS => 40000
+      }
+
+      MonitoringQuery(query, minimumImpressionsThreshold)
+
+    }
+
+    def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
+
+      val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
+      val totalImpressions = impressionCountsByAppVersion.map(_.impressions).sum
+      val resultIsAcceptable = totalImpressions > minimumImpressionsThreshold
+
+      val additionalDebugInfo = if (!resultIsAcceptable) Some {
+        s"""
+           |Expected there to be at least $minimumImpressionsThreshold impressions, but only found $totalImpressions impressions.
+         """.stripMargin
+      }
+      else {
+        None
+      }
+
+      MonitoringQueryResult(resultIsAcceptable, additionalDebugInfo)
+
+    }
 
   }
 
