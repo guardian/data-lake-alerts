@@ -58,7 +58,7 @@ object Features {
 
       val additionalDebugInfo = if (!resultIsAcceptable) Some {
         s"""
-           |Expected there to be at least $minimumImpressionsThreshold, but only got $totalImpressions.
+           |Expected there to be at least $minimumImpressionsThreshold impressions, but only found $totalImpressions impressions.
          """.stripMargin
       }
       else {

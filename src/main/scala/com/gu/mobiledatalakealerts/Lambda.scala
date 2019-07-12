@@ -50,9 +50,8 @@ object Notifications {
       channel = Email,
       target = List(stack),
       actions = List(Action(
-        cta = "View Query Results",
-        url = s"https://eu-west-1.console.aws.amazon.com/athena/home?region=eu-west-1#query/history/${executionId}")
-      ),
+        cta = "View Query Results [Requires Ophan AWS Console Access]",
+        url = s"https://eu-west-1.console.aws.amazon.com/athena/home?region=eu-west-1#query/history/${executionId}")),
       topicArn = env.snsTopicForAlerts,
       client = AWS.snsClient(AwsCredentials.notificationCredentials))
 
