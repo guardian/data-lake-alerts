@@ -1,4 +1,4 @@
-stacks: [ophan]
+stacks: [ophan-data-lake]
 regions: [eu-west-1]
 
 deployments:
