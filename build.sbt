@@ -1,4 +1,4 @@
-name := "mobile-data-lake-alerts"
+name := "data-lake-alerts"
 
 organization := "com.gu"
 

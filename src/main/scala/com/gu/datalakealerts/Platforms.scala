@@ -1,4 +1,4 @@
-package com.gu.mobiledatalakealerts
+package com.gu.datalakealerts
 
 object Platforms {
 

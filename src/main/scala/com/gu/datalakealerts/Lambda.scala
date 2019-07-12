@@ -1,11 +1,11 @@
-package com.gu.mobiledatalakealerts
+package com.gu.datalakealerts
 
 import com.amazonaws.services.lambda.runtime.Context
 import com.gu.anghammarad.{ AWS, Anghammarad }
 import com.gu.anghammarad.models._
-import com.gu.mobiledatalakealerts.Features.{ Feature, FrictionScreen }
-import com.gu.mobiledatalakealerts.Lambda.logger
-import com.gu.mobiledatalakealerts.Platforms.{ Platform, iOS }
+import com.gu.datalakealerts.Features.{ Feature, FrictionScreen }
+import com.gu.datalakealerts.Lambda.logger
+import com.gu.datalakealerts.Platforms.{ Platform, iOS }
 import org.slf4j.{ Logger, LoggerFactory }
 
 import scala.concurrent.Await

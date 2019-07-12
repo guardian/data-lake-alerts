@@ -1,9 +1,9 @@
-package com.gu.mobiledatalakealerts
+package com.gu.datalakealerts
 
 import java.time.LocalDate
 
 import com.amazonaws.services.athena.model.ResultSet
-import com.gu.mobiledatalakealerts.Platforms.{ Android, Platform }
+import com.gu.datalakealerts.Platforms.{ Android, Platform }
 
 object Features {
 

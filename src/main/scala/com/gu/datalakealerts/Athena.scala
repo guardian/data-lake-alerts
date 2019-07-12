@@ -1,8 +1,8 @@
-package com.gu.mobiledatalakealerts
+package com.gu.datalakealerts
 
 import com.amazonaws.services.athena.{ AmazonAthena, AmazonAthenaClient }
 import com.amazonaws.services.athena.model.{ GetQueryExecutionRequest, GetQueryResultsRequest, ResultConfiguration, ResultSet, StartQueryExecutionRequest, StartQueryExecutionResult }
-import com.gu.mobiledatalakealerts.Features.MonitoringQuery
+import com.gu.datalakealerts.Features.MonitoringQuery
 import org.slf4j.{ Logger, LoggerFactory }
 
 import scala.collection.JavaConverters._

@@ -4,11 +4,11 @@ Parameters:
   Stack:
     Description: Stack name
     Type: String
-    Default: mobile
+    Default: ophan
   App:
     Description: Application name
     Type: String
-    Default: mobile-data-lake-alerts
+    Default: data-lake-alerts
   Stage:
     Description: Stage name
     Type: String
@@ -22,7 +22,7 @@ Parameters:
   DeployBucket:
     Description: Bucket where RiffRaff uploads artifacts on deploy
     Type: String
-    Default: mobile-dist
+    Default: ophan-dist
 Resources:
   ExecutionRole:
     Type: AWS::IAM::Role
@@ -74,7 +74,7 @@ Resources:
           App: !Ref App
           SnsTopicForAlerts: !Ref SnsTopicForAlerts
       Description: Query the data lake and alert if thresholds are breached
-      Handler: com.gu.mobiledatalakealerts.Lambda::handler
+      Handler: com.gu.datalakealerts.Lambda::handler
       MemorySize: 1536
       Role: !GetAtt ExecutionRole.Arn
       Runtime: java8

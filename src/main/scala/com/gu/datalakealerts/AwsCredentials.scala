@@ -1,4 +1,4 @@
-package com.gu.mobiledatalakealerts
+package com.gu.datalakealerts
 
 import com.amazonaws.auth.{ AWSCredentialsProviderChain, EnvironmentVariableCredentialsProvider }
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
