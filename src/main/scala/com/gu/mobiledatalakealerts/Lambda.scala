@@ -41,7 +41,7 @@ object Notifications {
 
   val env = Env()
 
-  def alert(featureId: String, message: Option[String], stack: Stack) = {
+  def alert(featureId: String, executionId: String, message: Option[String], stack: Stack) = {
 
     val notificationAttempt = Anghammarad.notify(
       subject = s"Data Lake Monitoring | Check Failed for ${featureId}",
@@ -49,7 +49,10 @@ object Notifications {
       sourceSystem = "Data Lake Alerts",
       channel = Email,
       target = List(stack),
-      actions = Nil,
+      actions = List(Action(
+        cta = "View Query Results",
+        url = s"https://eu-west-1.console.aws.amazon.com/athena/home?region=eu-west-1#query/history/${executionId}")
+      ),
       topicArn = env.snsTopicForAlerts,
       client = AWS.snsClient(AwsCredentials.notificationCredentials))
 
@@ -79,7 +82,7 @@ object Lambda {
     Athena.waitForQueryToComplete(queryExecutionId)
     val monitoringResult = feature.monitoringQueryResult(Athena.retrieveResult(queryExecutionId), monitoringQuery.minimumImpressionsThreshold)
     if (!monitoringResult.resultIsAcceptable) {
-      Notifications.alert(feature.id, monitoringResult.additionalDebugInformation, Stack(platform.id))
+      Notifications.alert(feature.id, queryExecutionId, monitoringResult.additionalDebugInformation, Stack(platform.id))
     } else {
       logger.info(s"Monitoring ran successfully for ${feature.id}. No problems were detected.")
     }

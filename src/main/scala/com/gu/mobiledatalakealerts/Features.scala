@@ -56,9 +56,9 @@ object Features {
       val totalImpressions = impressionCountsByAppVersion.map(_.impressions).sum
       val resultIsAcceptable = totalImpressions > minimumImpressionsThreshold
 
-      val additionalDebugInfo = if (resultIsAcceptable) Some {
+      val additionalDebugInfo = if (!resultIsAcceptable) Some {
         s"""
-           |Expected there to be at least $minimumImpressionsThreshold, but only got $totalImpressions
+           |Expected there to be at least $minimumImpressionsThreshold, but only got $totalImpressions.
          """.stripMargin
       }
       else {
