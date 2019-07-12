@@ -1,19 +1,19 @@
-stacks: [mobile]
+stacks: [ophan-data-lake]
 regions: [eu-west-1]
 
 deployments:
-  mobile-data-lake-alerts:
+  data-lake-alerts:
     type: aws-lambda
     parameters:
-      bucket: mobile-dist
-      functionNames: [mobile-data-lake-alerts-]
-      fileName: mobile-data-lake-alerts.jar
+      bucket: ophan-dist
+      functionNames: [data-lake-alerts-]
+      fileName: data-lake-alerts.jar
       prefixStack: false
-    dependencies: [mobile-data-lake-alerts-cfn]
-  mobile-data-lake-alerts-cfn:
+    dependencies: [data-lake-alerts-cfn]
+  data-lake-alerts-cfn:
     type: cloud-formation
-    app: mobile-data-lake-alerts
+    app: data-lake-alerts
     parameters:
       prependStackToCloudFormationStackName: false
-      cloudFormationStackName: mobile-data-lake-alerts
+      cloudFormationStackName: data-lake-alerts
       templatePath: cfn.yaml
