@@ -68,6 +68,16 @@ Resources:
                 - athena:GetQueryExecution
                 - athena:GetQueryResults
               Resource: "*"
+        - PolicyName: mandatoryGlueAccess
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - glue:GetDatabase
+                - glue:CreateDatabase
+              Resource:
+                - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:catalog
+                - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/default
         - PolicyName: s3CleanPageViewsAccess
           PolicyDocument:
             Statement:
