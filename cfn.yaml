@@ -79,6 +79,7 @@ Resources:
               Resource:
                 - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:catalog
                 - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/default
+                - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/clean
         - PolicyName: s3CleanPageViewsAccess
           PolicyDocument:
             Statement:
