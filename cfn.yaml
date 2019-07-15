@@ -74,6 +74,7 @@ Resources:
               Effect: Allow
               Action:
                 - glue:GetDatabase
+                - glue:GetTable
                 - glue:CreateDatabase
               Resource:
                 - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:catalog
