@@ -87,7 +87,7 @@ Resources:
                     - s3:AbortMultipartUpload
                     - s3:PutObject
                   Resource:
-                    - arn:aws:s3:::aws-athena-query-results-*/*'
+                    - arn:aws:s3:::aws-athena-query-results-*/data-lake-alerts/*'
 
   Lambda:
     Type: AWS::Lambda::Function
