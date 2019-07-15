@@ -69,25 +69,25 @@ Resources:
                 - athena:GetQueryResults
               Resource: "*"
         - PolicyName: s3CleanPageViewsAccess
-            PolicyDocument:
-              Statement:
-                Effect: Allow
-                Action:
-                  - s3:Get*
-                  - s3:List*
-                Resource: arn:aws:s3:::ophan-clean-pageview/*
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - s3:Get*
+                - s3:List*
+              Resource: arn:aws:s3:::ophan-clean-pageview/*
         - PolicyName: s3QueryResultsAccess
-            PolicyDocument:
-              Statement:
-                Effect: Allow
-                  Action:
-                    - s3:GetObject
-                    - s3:ListBucketMultipartUploads
-                    - s3:ListMultipartUploadParts
-                    - s3:AbortMultipartUpload
-                    - s3:PutObject
-                  Resource:
-                    - arn:aws:s3:::aws-athena-query-results-*/data-lake-alerts/*'
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:ListBucketMultipartUploads
+                - s3:ListMultipartUploadParts
+                - s3:AbortMultipartUpload
+                - s3:PutObject
+              Resource:
+                - arn:aws:s3:::aws-athena-query-results-*/data-lake-alerts/*
 
   Lambda:
     Type: AWS::Lambda::Function
