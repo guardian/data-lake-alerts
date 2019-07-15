@@ -75,11 +75,21 @@ Resources:
               Action:
                 - glue:GetDatabase
                 - glue:GetTable
+                - glue:GetPartitions
                 - glue:CreateDatabase
               Resource:
                 - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:catalog
                 - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/default
+        - PolicyName: cleanGlueAccess
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - glue:GetTable
+                - glue:GetPartitions
+              Resource:
                 - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/clean
+                - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:table/clean/pageview
         - PolicyName: s3CleanPageViewsAccess
           PolicyDocument:
             Statement:
@@ -87,7 +97,9 @@ Resources:
               Action:
                 - s3:Get*
                 - s3:List*
-              Resource: arn:aws:s3:::ophan-clean-pageview/*
+              Resource:
+              - arn:aws:s3:::ophan-clean-pageview
+              - arn:aws:s3:::ophan-clean-pageview/*
         - PolicyName: s3QueryResultsAccess
           PolicyDocument:
             Statement:
