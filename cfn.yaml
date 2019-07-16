@@ -59,6 +59,59 @@ Resources:
               Action:
                 - SNS:Publish
               Resource: !Ref SnsTopicForAlerts
+        - PolicyName: athenaReadAccess
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - athena:StartQueryExecution
+                - athena:GetQueryExecution
+                - athena:GetQueryResults
+              Resource: "*"
+        - PolicyName: mandatoryGlueAccess
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - glue:GetDatabase
+                - glue:GetTable
+                - glue:GetPartitions
+              Resource:
+                - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:catalog
+                - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/default
+        - PolicyName: cleanGlueAccess
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - glue:GetTable
+                - glue:GetPartitions
+              Resource:
+                - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/clean
+                - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:table/clean/pageview
+        - PolicyName: s3CleanPageViewsAccess
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - s3:Get*
+                - s3:List*
+              Resource:
+              - arn:aws:s3:::ophan-clean-pageview
+              - arn:aws:s3:::ophan-clean-pageview/*
+        - PolicyName: s3QueryResultsAccess
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:ListBucketMultipartUploads
+                - s3:ListMultipartUploadParts
+                - s3:AbortMultipartUpload
+                - s3:PutObject
+              Resource:
+                - arn:aws:s3:::aws-athena-query-results-*/data-lake-alerts/*
+
   Lambda:
     Type: AWS::Lambda::Function
     Properties:
