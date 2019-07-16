@@ -76,7 +76,6 @@ Resources:
                 - glue:GetDatabase
                 - glue:GetTable
                 - glue:GetPartitions
-                - glue:CreateDatabase
               Resource:
                 - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:catalog
                 - !Sub arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/default
