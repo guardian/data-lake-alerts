@@ -39,8 +39,8 @@ The simplest option is to run the monitoring task on a daily basis, using a Sche
     
     ```
     {
-        platform: "android"
-        feature: "my_feature_id"    
+      "featureId": "friction_screen",
+      "platformId": "ios"
     }
     ```
 However, as this monitoring task runs as a lambda function, it's possible to use a different trigger
