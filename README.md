@@ -30,7 +30,9 @@ a different table, you'll need to add further permissions to the Cloudformation 
 1. Edit the `TestIt` object, passing in your `Platform` and `Feature`.
 1. Run `sbt run`.
 
-###Triggering the monitoring task regularly
+###Triggering the monitoring task
+
+The simplest option is to run the monitoring task on a daily basis, using a Scheduled Event.
 
 1. Add a CloudWatch rule to the repo's CloudFormation template.
     1. The input event should look something like this:
@@ -41,3 +43,5 @@ a different table, you'll need to add further permissions to the Cloudformation 
         feature: "my_feature_id"    
     }
     ```
+However, as this monitoring task runs as a lambda function, it's possible to use a different trigger
+event (e.g. another lambda) to invoke the function with the relevant input event.
