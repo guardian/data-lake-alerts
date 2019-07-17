@@ -155,5 +155,12 @@ Resources:
               "featureId": "friction_screen",
               "platformId": "ios"
             }
+        - Arn: !GetAtt Lambda.Arn
+          Id: android-friction-screen-scheduler
+          Input: |
+            {
+              "featureId": "friction_screen",
+              "platformId": "android"
+            }
     DependsOn:
       - Lambda
