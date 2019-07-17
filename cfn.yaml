@@ -155,5 +155,3 @@ Resources:
               "featureId": "friction_screen",
               "platformId": "ios"
             }
-    DependsOn:
-      - Lambda
