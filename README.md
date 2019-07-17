@@ -3,9 +3,10 @@
 Allows developers to detect production issues, by automating the process of querying the Data Lake 
 and alerting on undesirable results.
 
-## Adding a new alert
+Adding a new alert
+------------------
 
-###Before you start:
+### Before you start:
 
 You will need to be able to run queries against the Data Lake using `AWS Athena`, 
 so you'll need to request `dataLakeQuerying` permissions via Janus if you do not already have access.
@@ -13,7 +14,7 @@ so you'll need to request `dataLakeQuerying` permissions via Janus if you do not
 Currently this service has read-only access to the `clean.pageviews` table only. If you need to run queries against 
 a different table, you'll need to add further permissions to the Cloudformation template in this repository.
 
-###Adding the alert:
+### Adding the alert:
 
 1. Write your query and test it using Athena. 
     1. The Athena pricing model is based on data scanned, so try not to scan more data than necessary.
@@ -24,13 +25,13 @@ a different table, you'll need to add further permissions to the Cloudformation 
     additional debug information which will be included in the alert in the event of a failure.
 1. Add your feature to `allFeaturesWithMonitoring` (also in the `Features` object).
 
-###Testing your changes
+### Testing your changes
 
 1. Obtain `developerPlayground` and `ophan` Janus credentials.
 1. Edit the `TestIt` object, passing in your `Platform` and `Feature`.
 1. Run `sbt run`.
 
-###Triggering the monitoring task
+### Triggering the monitoring task
 
 The simplest option is to run the monitoring task on a daily basis, using a Scheduled Event.
 
