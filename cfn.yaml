@@ -162,5 +162,3 @@ Resources:
               "featureId": "friction_screen",
               "platformId": "android"
             }
-    DependsOn:
-      - Lambda
