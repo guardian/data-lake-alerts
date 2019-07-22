@@ -8,7 +8,7 @@ import com.gu.datalakealerts.Platforms.{ Android, Platform }
 object Features {
 
   val yesterday: LocalDate = LocalDate.now().minusDays(1)
-  val allFeaturesWithMonitoring: List[Feature] = List(FrictionScreen)
+  val allFeaturesWithMonitoring: List[Feature] = List(FrictionScreen, EpicAndroidFeature)
 
   def featureToMonitor(featureId: String): Feature = {
     allFeaturesWithMonitoring
@@ -71,4 +71,43 @@ object Features {
 
   }
 
+  case object EpicAndroidFeature extends Feature {
+    override val id = "epic"
+
+    override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
+      val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
+      val totalImpressions = impressionCountsByAppVersion.map(_.impressions).sum
+      val resultIsAcceptable = totalImpressions > minimumImpressionsThreshold
+
+      val additionalDebugInfo = if (!resultIsAcceptable) Some {
+        s"""
+           |Expected there to be at least $minimumImpressionsThreshold epic impressions, but only found $totalImpressions impressions.
+         """.stripMargin
+      }
+      else {
+        None
+      }
+
+      MonitoringQueryResult(resultIsAcceptable, additionalDebugInfo)
+
+    }
+
+    override def monitoringQuery(platform: Platform): MonitoringQuery = {
+      platform match {
+        case Android =>
+          MonitoringQuery("""
+            |select browser_version, count (distinct page_view_id) as epic_impressions
+            |from clean.pageview
+            |cross join unnest (ab_tests) x (ab)
+            |where received_date = date '2019-07-17'
+            |and path not like '%.mp3%'
+            |and device_type like '%ANDROID%'
+            |and ab.name like '%epic%'
+            |and ab.completed = True
+            |group by 1
+          """.stripMargin, 285000)
+        case _ => throw new RuntimeException("Only Android platform is supported.")
+      }
+    }
+  }
 }

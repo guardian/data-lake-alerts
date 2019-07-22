@@ -3,9 +3,9 @@ package com.gu.datalakealerts
 import com.amazonaws.services.lambda.runtime.Context
 import com.gu.anghammarad.{ AWS, Anghammarad }
 import com.gu.anghammarad.models._
-import com.gu.datalakealerts.Features.{ Feature, FrictionScreen }
+import com.gu.datalakealerts.Features.{ EpicAndroidFeature, Feature, FrictionScreen }
 import com.gu.datalakealerts.Lambda.logger
-import com.gu.datalakealerts.Platforms.{ Platform, iOS }
+import com.gu.datalakealerts.Platforms.{ Android, Platform, iOS }
 import org.slf4j.{ Logger, LoggerFactory }
 
 import scala.concurrent.Await
@@ -91,6 +91,6 @@ object Lambda {
 
 object TestIt {
   def main(args: Array[String]): Unit = {
-    Lambda.process(Env(), iOS, FrictionScreen)
+    Lambda.process(Env(), Android, EpicAndroidFeature)
   }
 }

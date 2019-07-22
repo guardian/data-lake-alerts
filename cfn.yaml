@@ -162,3 +162,10 @@ Resources:
               "featureId": "friction_screen",
               "platformId": "android"
             }
+         - Arn: !GetAtt Lambda.Arn
+           Id: android-epic-scheduler
+           Input: |
+             {
+               "featureId": "epic",
+               "platformId": "android"
+             }
