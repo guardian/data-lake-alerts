@@ -33,6 +33,7 @@ object Athena {
       Thread.sleep(1000)
       val shouldStopPolling = {
         val status = client.getQueryExecution(getQueryExecutionRequest).getQueryExecution.getStatus.getState
+        logger.info(s"Query $queryExecutionId status is: $status")
         status == "SUCCEEDED" || status == "FAILED" || status == "CANCELLED"
       }
       waitForQueryToComplete(queryExecutionId, shouldStopPolling)
