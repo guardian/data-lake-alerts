@@ -77,7 +77,7 @@ object Features {
     override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
       val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
       val totalImpressions = impressionCountsByAppVersion.map(_.impressions).sum
-      val resultIsAcceptable = ImpressionCounts.minimumThresholdMet(resultSet, minimumImpressionsThreshold)
+      val resultIsAcceptable = totalImpressions > minimumImpressionsThreshold
 
       val additionalDebugInfo = if (!resultIsAcceptable) Some {
         s"""
