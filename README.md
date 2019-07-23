@@ -28,8 +28,7 @@ a different table, you'll need to add further permissions to the Cloudformation 
 ### Testing your changes
 
 1. Obtain `developerPlayground` and `ophan` Janus credentials.
-1. Edit the `TestIt` object, passing in your `Platform` and `Feature`.
-1. Run `sbt run`.
+1. Run `sbt "run my_platform my_feature"` (passing in the relevant `Platform` and `Feature` ids).
 
 ### Triggering the monitoring task
 
