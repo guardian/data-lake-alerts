@@ -30,6 +30,8 @@ a different table, you'll need to add further permissions to the Cloudformation 
 1. Obtain `developerPlayground` and `ophan` Janus credentials.
 1. Run `sbt "run my_platform my_feature"` (passing in the relevant `Platform` and `Feature` ids).
 
+Note that (by default) an alert will *not* be sent when running locally (although there will be logging which indicates that an alert _would_ have been sent). This is to prevent people from unintentionally spamming their teams when testing changes. If you really want to send an alert, you can do so by setting [Anghammarad](https://github.com/guardian/anghammarad)'s SNS topic [ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html) as an environment variable called `SnsTopicForAlerts`.
+
 ### Triggering the monitoring task
 
 The simplest option is to run the monitoring task on a daily basis, using a Scheduled Event.
