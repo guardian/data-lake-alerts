@@ -49,3 +49,5 @@ The simplest option is to run the monitoring task on a daily basis, using a Sche
     
 However, as this monitoring task runs as a lambda function, it's possible to use a different trigger
 event (e.g. another lambda) to invoke the function with the relevant input event.
+
+You should deploy this change to `CODE` to ensure that your Cloudformation changes are valid.
