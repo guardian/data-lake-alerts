@@ -91,6 +91,10 @@ object Lambda {
 
 object TestIt {
   def main(args: Array[String]): Unit = {
-    Lambda.process(Env(), Android, EpicAndroidFeature)
+    if (args.length != 2) {
+      logger.error("Please provide a platformId and a featureId e.g. sbt \"run android friction_screen\"")
+    } else {
+      Lambda.process(Env(), Platforms.platformToMonitor(args(0)), Features.featureToMonitor(args(1)))
+    }
   }
 }
