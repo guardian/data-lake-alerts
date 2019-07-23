@@ -19,7 +19,7 @@ object Athena {
   def startQuery(monitoringQuery: MonitoringQuery): StartQueryExecutionResult = {
     val startQueryRequest: StartQueryExecutionRequest = new StartQueryExecutionRequest()
       .withQueryString(monitoringQuery.query)
-      .withResultConfiguration(new ResultConfiguration().withOutputLocation("s3://aws-athena-query-results-021353022223-eu-west-1/data-lake-alerts")) // Ophan temp bucket
+      .withWorkGroup("primary") //TODO: consider using a dedicated workgroup
     client.startQueryExecution(startQueryRequest)
   }
 
