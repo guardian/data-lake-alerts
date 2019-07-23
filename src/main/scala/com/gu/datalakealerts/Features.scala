@@ -95,11 +95,11 @@ object Features {
     override def monitoringQuery(platform: Platform): MonitoringQuery = {
       platform match {
         case Android =>
-          MonitoringQuery("""
+          MonitoringQuery(s"""
             |select browser_version, count (distinct page_view_id) as epic_impressions
             |from clean.pageview
             |cross join unnest (ab_tests) x (ab)
-            |where received_date = date '2019-07-17'
+            |where received_date = date '$yesterday'
             |and path not like '%.mp3%'
             |and device_type like '%ANDROID%'
             |and ab.name like '%epic%'
