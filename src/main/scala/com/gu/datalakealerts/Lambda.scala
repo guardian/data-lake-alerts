@@ -43,22 +43,27 @@ object Notifications {
 
   def alert(featureId: String, executionId: String, message: Option[String], stack: Stack) = {
 
-    val notificationAttempt = Anghammarad.notify(
-      subject = s"Data Lake Monitoring | Check Failed for ${featureId}",
-      message = message.getOrElse(s"Check failed when monitoring ${featureId}"),
-      sourceSystem = "Data Lake Alerts",
-      channel = Email,
-      target = List(stack),
-      actions = List(Action(
-        cta = "View Query Results [Requires Ophan AWS Console Access]",
-        url = s"https://eu-west-1.console.aws.amazon.com/athena/home?region=eu-west-1#query/history/${executionId}")),
-      topicArn = env.snsTopicForAlerts,
-      client = AWS.snsClient(AwsCredentials.notificationCredentials))
+    if (env.snsTopicForAlerts == "DEV") {
+      logger.info(s"Alert function called when running locally: an alert will NOT actually be sent unless SnsTopicForAlerts env variable is provided (to avoid spamming your team)")
+    } else {
+      val notificationAttempt = Anghammarad.notify(
+        subject = s"Data Lake Monitoring | Check Failed for ${featureId}",
+        message = message.getOrElse(s"Check failed when monitoring ${featureId}"),
+        sourceSystem = "Data Lake Alerts",
+        channel = Email,
+        target = List(stack),
+        actions = List(Action(
+          cta = "View Query Results [Requires Ophan AWS Console Access]",
+          url = s"https://eu-west-1.console.aws.amazon.com/athena/home?region=eu-west-1#query/history/${executionId}")),
+        topicArn = env.snsTopicForAlerts,
+        client = AWS.snsClient(AwsCredentials.notificationCredentials))
 
-    Try(Await.result(notificationAttempt, 10.seconds)) match {
-      case Success(_) => logger.info("Sent notification via Anghammarad")
-      case Failure(ex) => logger.error(s"Failed to send notification due to $ex")
+      Try(Await.result(notificationAttempt, 10.seconds)) match {
+        case Success(_) => logger.info("Sent notification via Anghammarad")
+        case Failure(ex) => logger.error(s"Failed to send notification due to $ex")
+      }
     }
+
   }
 
 }
