@@ -3,9 +3,9 @@ package com.gu.datalakealerts
 import com.amazonaws.services.lambda.runtime.Context
 import com.gu.anghammarad.{ AWS, Anghammarad }
 import com.gu.anghammarad.models._
-import com.gu.datalakealerts.Features.{ EpicAndroidFeature, Feature, FrictionScreen }
+import com.gu.datalakealerts.Features.Feature
 import com.gu.datalakealerts.Lambda.logger
-import com.gu.datalakealerts.Platforms.{ Android, Platform, iOS }
+import com.gu.datalakealerts.Platforms.Platform
 import org.slf4j.{ Logger, LoggerFactory }
 
 import scala.concurrent.Await
@@ -96,6 +96,10 @@ object Lambda {
 
 object TestIt {
   def main(args: Array[String]): Unit = {
-    Lambda.process(Env(), Android, EpicAndroidFeature)
+    if (args.length != 2) {
+      logger.error("Please provide a platformId and a featureId e.g. sbt \"run android friction_screen\"")
+    } else {
+      Lambda.process(Env(), Platforms.platformToMonitor(args(0)), Features.featureToMonitor(args(1)))
+    }
   }
 }
