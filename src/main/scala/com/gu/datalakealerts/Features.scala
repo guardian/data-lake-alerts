@@ -3,7 +3,7 @@ package com.gu.datalakealerts
 import java.time.LocalDate
 
 import com.amazonaws.services.athena.model.ResultSet
-import com.gu.datalakealerts.Platforms.{ Android, Platform }
+import com.gu.datalakealerts.Platforms.{ Android, iOS, Platform }
 
 object Features {
 
@@ -106,7 +106,18 @@ object Features {
             |and ab.completed = True
             |group by 1
           """.stripMargin, 285000)
-        case _ => throw new RuntimeException("Only Android platform is supported.")
+        case iOS => 
+          MonitoringQuery(s"""
+            |select browser_version, count (distinct page_view_id) as epic_impressions
+            |from clean.pageview
+            |cross join unnest (ab_tests) x (ab)
+            |where received_date = date '$yesterday'
+            |and path not like '%.mp3%'
+            |and device_type like '%IOS%'
+            |and ab.name like '%epic%'
+            |and ab.completed = False
+            |group by 1
+          """.stripMargin, 617315)
       }
     }
   }
