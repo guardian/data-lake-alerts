@@ -169,3 +169,10 @@ Resources:
               "featureId": "epic",
               "platformId": "android"
             }
+        - Arn: !GetAtt Lambda.Arn
+          Id: ios-epic-scheduler
+          Input: |
+            {
+              "featureId": "epic",
+              "platformId": "ios"
+            }
