@@ -8,7 +8,7 @@ import com.gu.datalakealerts.Platforms.{ Android, iOS, Platform }
 object Features {
 
   val yesterday: LocalDate = LocalDate.now().minusDays(1)
-  val allFeaturesWithMonitoring: List[Feature] = List(FrictionScreen, EpicAndroidFeature)
+  val allFeaturesWithMonitoring: List[Feature] = List(FrictionScreen, Epic)
 
   def featureToMonitor(featureId: String): Feature = {
     allFeaturesWithMonitoring
@@ -71,7 +71,7 @@ object Features {
 
   }
 
-  case object EpicAndroidFeature extends Feature {
+  case object Epic extends Feature {
     override val id = "epic"
 
     override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
