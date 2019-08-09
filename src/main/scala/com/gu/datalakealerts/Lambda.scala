@@ -1,6 +1,8 @@
 package com.gu.datalakealerts
 
 import com.amazonaws.services.lambda.runtime.Context
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder
+import com.amazonaws.services.simplesystemsmanagement.model.GetParameterRequest
 import com.gu.anghammarad.{ AWS, Anghammarad }
 import com.gu.anghammarad.models._
 import com.gu.datalakealerts.Features.Feature
@@ -30,38 +32,53 @@ case class Env(app: String, stack: String, stage: String, snsTopicForAlerts: Str
 }
 
 object Env {
+
+  // Only used when running locally
+  lazy val ssmClient = AWSSimpleSystemsManagementClientBuilder
+    .standard()
+    .withCredentials(AwsCredentials.notificationCredentials)
+    .build()
+
+  // Only used when running locally
+  lazy val snsTopicFromParameterStore = {
+    logger.info("Reading Anghammarad SNS topic from Parameter Store...")
+    ssmClient.getParameter(
+      new GetParameterRequest().withName("/DEV/data-lake-alerts/anghammarad-sns-topic")).getParameter.getValue
+  }
+
   def apply(): Env = Env(
     Option(System.getenv("App")).getOrElse("DEV"),
     Option(System.getenv("Stack")).getOrElse("DEV"),
     Option(System.getenv("Stage")).getOrElse("DEV"),
-    Option(System.getenv("SnsTopicForAlerts")).getOrElse("DEV"))
+    Option(System.getenv("SnsTopicForAlerts")).getOrElse(snsTopicFromParameterStore))
 }
 
 object Notifications {
 
   val env = Env()
 
-  def alert(featureId: String, executionId: String, message: Option[String], stack: Stack) = {
+  def alert(featureId: String, executionId: String, message: Option[String], stackForProductionAlerts: Stack) = {
 
-    if (env.snsTopicForAlerts == "DEV") {
-      logger.info(s"Alert function called when running locally: an alert will NOT actually be sent unless SnsTopicForAlerts env variable is provided (to avoid spamming your team)")
-    } else {
-      val notificationAttempt = Anghammarad.notify(
-        subject = s"Data Lake Monitoring | Check Failed for ${featureId}",
-        message = message.getOrElse(s"Check failed when monitoring ${featureId}"),
-        sourceSystem = "Data Lake Alerts",
-        channel = Email,
-        target = List(stack),
-        actions = List(Action(
-          cta = "View Query Results [Requires Ophan AWS Console Access]",
-          url = s"https://eu-west-1.console.aws.amazon.com/athena/home?region=eu-west-1#query/history/${executionId}")),
-        topicArn = env.snsTopicForAlerts,
-        client = AWS.snsClient(AwsCredentials.notificationCredentials))
+    val stack = env.stage match {
+      case "PROD" => stackForProductionAlerts
+      case _ => Stack("testing-alerts") // Alerts sent in DEV and CODE will go to the 'anghammarad.test.alerts' Google Group (to avoid spam)
+    }
 
-      Try(Await.result(notificationAttempt, 10.seconds)) match {
-        case Success(_) => logger.info("Sent notification via Anghammarad")
-        case Failure(ex) => logger.error(s"Failed to send notification due to $ex")
-      }
+    val notificationAttempt = Anghammarad.notify(
+      subject = s"Data Lake Monitoring | Check Failed for ${featureId}",
+      message = message.getOrElse(s"Check failed when monitoring ${featureId}"),
+      sourceSystem = "Data Lake Alerts",
+      channel = Email,
+      target = List(stack),
+      actions = List(Action(
+        cta = "View Query Results [Requires Ophan AWS Console Access]",
+        url = s"https://eu-west-1.console.aws.amazon.com/athena/home?region=eu-west-1#query/history/${executionId}")),
+      topicArn = env.snsTopicForAlerts,
+      client = AWS.snsClient(AwsCredentials.notificationCredentials))
+
+    Try(Await.result(notificationAttempt, 10.seconds)) match {
+      case Success(_) => logger.info("Sent notification via Anghammarad")
+      case Failure(ex) => logger.error(s"Failed to send notification due to $ex")
     }
 
   }
@@ -86,7 +103,12 @@ object Lambda {
     Athena.waitForQueryToComplete(queryExecutionId)
     val monitoringResult = feature.monitoringQueryResult(Athena.retrieveResult(queryExecutionId), monitoringQuery.minimumImpressionsThreshold)
     if (!monitoringResult.resultIsAcceptable) {
-      Notifications.alert(feature.id, queryExecutionId, monitoringResult.additionalDebugInformation, Stack(platform.id))
+      Notifications.alert(
+        featureId = feature.id,
+        executionId = queryExecutionId,
+        monitoringResult.additionalDebugInformation,
+        stackForProductionAlerts = Stack(platform.id) //This stack will be overridden in other environments (to avoid spam)
+      )
     } else {
       logger.info(s"Monitoring ran successfully for ${feature.id}. No problems were detected.")
     }
