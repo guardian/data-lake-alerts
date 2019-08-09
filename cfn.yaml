@@ -23,6 +23,9 @@ Parameters:
     Description: Bucket where RiffRaff uploads artifacts on deploy
     Type: String
     Default: ophan-dist
+Conditions:
+  IsProduction:
+    !Equals [!Ref Stage, PROD]
 Resources:
   ExecutionRole:
     Type: AWS::IAM::Role
@@ -146,7 +149,7 @@ Resources:
     Properties:
       Name: !Sub data-lake-alerts-monitoring-schedule-${Stage}
       ScheduleExpression: cron(0 6 ? * MON-FRI *)
-      State: ENABLED
+      State: !If [IsProduction, ENABLED, DISABLED] # Schedules are disabled in CODE. This allows us to safely test rule creation without wasting money running unnecessary queries
       Targets:
         - Arn: !GetAtt Lambda.Arn
           Id: ios-friction-screen-scheduler
