@@ -16,7 +16,7 @@ object AlertInformation {
 
   def describeResults(actualImpressions: Int, expectedImpressions: Int): String = {
     val percentageChangeDescription = describePercentageChange(percentageChange(actualImpressions, expectedImpressions))
-    s"Actual impressions: $actualImpressions | Expected impressions: $expectedImpressions. | $percentageChangeDescription"
+    s"Actual impressions: $actualImpressions | Expected impressions: $expectedImpressions | Percentage: $percentageChangeDescription"
   }
 
 }
