@@ -57,7 +57,7 @@ object Notifications {
 
   val env = Env()
 
-  def alert(featureId: String, executionId: String, message: Option[String], stackForProductionAlerts: Stack) = {
+  def alert(featureId: String, executionId: String, message: String, stackForProductionAlerts: Stack) = {
 
     val stack = env.stage match {
       case "PROD" => stackForProductionAlerts
@@ -66,7 +66,7 @@ object Notifications {
 
     val notificationAttempt = Anghammarad.notify(
       subject = s"Data Lake Monitoring | Check Failed for ${featureId}",
-      message = message.getOrElse(s"Check failed when monitoring ${featureId}"),
+      message = message,
       sourceSystem = "Data Lake Alerts",
       channel = Email,
       target = List(stack),
@@ -106,11 +106,11 @@ object Lambda {
       Notifications.alert(
         featureId = feature.id,
         executionId = queryExecutionId,
-        monitoringResult.additionalDebugInformation,
+        monitoringResult.additionalInformation,
         stackForProductionAlerts = Stack(platform.id) //This stack will be overridden in other environments (to avoid spam)
       )
     } else {
-      logger.info(s"Monitoring ran successfully for ${feature.id}. No problems were detected.")
+      logger.info(s"Monitoring ran successfully for ${feature.id} on ${platform.id}. No problems were detected.\n${monitoringResult.additionalInformation}.")
     }
   }
 

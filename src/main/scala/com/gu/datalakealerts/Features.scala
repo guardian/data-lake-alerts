@@ -17,7 +17,7 @@ object Features {
   }
 
   case class MonitoringQuery(query: String, minimumImpressionsThreshold: Int)
-  case class MonitoringQueryResult(resultIsAcceptable: Boolean, additionalDebugInformation: Option[String])
+  case class MonitoringQueryResult(resultIsAcceptable: Boolean, additionalInformation: String)
 
   sealed trait Feature {
     val id: String
@@ -51,22 +51,10 @@ object Features {
     }
 
     def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
-
       val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
       val totalImpressions = impressionCountsByAppVersion.map(_.impressions).sum
       val resultIsAcceptable = totalImpressions > minimumImpressionsThreshold
-
-      val additionalDebugInfo = if (!resultIsAcceptable) Some {
-        s"""
-           |Expected there to be at least $minimumImpressionsThreshold impressions, but only found $totalImpressions impressions.
-         """.stripMargin
-      }
-      else {
-        None
-      }
-
-      MonitoringQueryResult(resultIsAcceptable, additionalDebugInfo)
-
+      MonitoringQueryResult(resultIsAcceptable, AlertInformation.describeResults(totalImpressions, minimumImpressionsThreshold))
     }
 
   }
@@ -78,18 +66,7 @@ object Features {
       val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
       val totalImpressions = impressionCountsByAppVersion.map(_.impressions).sum
       val resultIsAcceptable = totalImpressions > minimumImpressionsThreshold
-
-      val additionalDebugInfo = if (!resultIsAcceptable) Some {
-        s"""
-           |Expected there to be at least $minimumImpressionsThreshold epic impressions, but only found $totalImpressions impressions.
-         """.stripMargin
-      }
-      else {
-        None
-      }
-
-      MonitoringQueryResult(resultIsAcceptable, additionalDebugInfo)
-
+      MonitoringQueryResult(resultIsAcceptable, AlertInformation.describeResults(totalImpressions, minimumImpressionsThreshold))
     }
 
     override def monitoringQuery(platform: Platform): MonitoringQuery = {
@@ -106,7 +83,7 @@ object Features {
             |and ab.completed = True
             |group by 1
           """.stripMargin, 285000)
-        case iOS => 
+        case iOS =>
           MonitoringQuery(s"""
             |select browser_version, count (distinct page_view_id) as epic_impressions
             |from clean.pageview
