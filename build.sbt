@@ -22,7 +22,8 @@ libraryDependencies ++= Seq(
   "com.gu" %% "anghammarad-client" % "1.0.4",
   "org.slf4j" % "slf4j-api" % "1.7.26",
   "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.8.2",
-  "com.amazonaws" % "aws-java-sdk-athena" % "1.11.577"
+  "com.amazonaws" % "aws-java-sdk-athena" % "1.11.577",
+  "org.scalatest" %% "scalatest" % "3.0.8" % "test"
 )
 
 enablePlugins(RiffRaffArtifact)
