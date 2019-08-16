@@ -185,7 +185,7 @@ Resources:
     Properties:
       AlarmActions:
       - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:jacob-test
-      AlarmName: Data Lake Alerts Monitoring Errors
+      AlarmName: !Sub Data Lake Alerts Monitoring Errors in ${Stage}
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Dimensions:
         - Name: FunctionName
