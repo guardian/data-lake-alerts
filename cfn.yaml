@@ -148,7 +148,7 @@ Resources:
     Type: AWS::Events::Rule
     Properties:
       Name: !Sub data-lake-alerts-monitoring-schedule-${Stage}
-      ScheduleExpression: cron(0 6 ? * MON-FRI *)
+      ScheduleExpression: cron(0 12 ? * MON-FRI *)
       State: !If [IsProduction, ENABLED, DISABLED] # Schedules are disabled in CODE. This allows us to safely test rule creation without wasting money running unnecessary queries
       Targets:
         - Arn: !GetAtt Lambda.Arn
