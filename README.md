@@ -27,6 +27,12 @@ a different table, you'll need to add further permissions to the Cloudformation 
 
 ### Testing your changes
 
+Ensure you are on the correct AWS region (`eu-west-1`). This can be achieved by using the `AWS_DEFAULT_REGION` environment variable:
+
+```
+export AWS_DEFAULT_REGION=eu-west-1
+```
+
 1. Obtain `developerPlayground` and `ophan` Janus credentials.
 1. Run `sbt "run my_platform my_feature"` (passing in the relevant `Platform` and `Feature` ids).
 
