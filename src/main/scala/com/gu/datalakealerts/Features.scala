@@ -111,7 +111,6 @@ object Features {
 
     override def monitoringQuery(platform: Platform): MonitoringQuery = {
       platform match {
-        case _ => throw new RuntimeException("Only iOS platform is supported.")
         case iOS =>
           MonitoringQuery(s"""
             |select browser_version, count (distinct page_view_id)
@@ -122,6 +121,7 @@ object Features {
             |and c.action = 'VIEW'
             |group by 1
           """.stripMargin, 103000)
+        case _ => throw new RuntimeException("Only iOS platform is supported.")
       }
     }
   }
