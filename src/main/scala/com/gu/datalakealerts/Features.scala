@@ -8,7 +8,7 @@ import com.gu.datalakealerts.Platforms.{ Android, iOS, Platform }
 object Features {
 
   val yesterday: LocalDate = LocalDate.now().minusDays(1)
-  val allFeaturesWithMonitoring: List[Feature] = List(FrictionScreen, Epic)
+  val allFeaturesWithMonitoring: List[Feature] = List(FrictionScreen, OlgilEpic, BrazeEpic)
 
   def featureToMonitor(featureId: String): Feature = {
     allFeaturesWithMonitoring
@@ -59,8 +59,8 @@ object Features {
 
   }
 
-  case object Epic extends Feature {
-    override val id = "epic"
+  case object OlgilEpic extends Feature {
+    override val id = "olgil_epic"
 
     override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
       val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
@@ -95,6 +95,33 @@ object Features {
             |and ab.completed = False
             |group by 1
           """.stripMargin, 308658)
+      }
+    }
+  }
+
+  case object BrazeEpic extends Feature {
+    override val id = "braze_epic"
+
+    override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
+      val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
+      val totalImpressions = impressionCountsByAppVersion.map(_.impressions).sum
+      val resultIsAcceptable = totalImpressions > minimumImpressionsThreshold
+      MonitoringQueryResult(resultIsAcceptable, AlertInformation.describeResults(totalImpressions, minimumImpressionsThreshold))
+    }
+
+    override def monitoringQuery(platform: Platform): MonitoringQuery = {
+      platform match {
+        case _ => throw new RuntimeException("Only iOS platform is supported.")
+        case iOS =>
+          MonitoringQuery(s"""
+            |select browser_version, count (distinct page_view_id)
+            |from clean.pageview 
+            |where received_date = date '$yesterday'
+            |and device_type like '%IOS%'
+            |and c.component.type = 'APP_EPIC'
+            |and c.action = 'VIEW'
+            |group by 1
+          """.stripMargin, 103000)
       }
     }
   }
