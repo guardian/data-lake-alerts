@@ -166,17 +166,24 @@ Resources:
               "platformId": "android"
             }
         - Arn: !GetAtt Lambda.Arn
-          Id: android-epic-scheduler
+          Id: android-olgil-epic-scheduler
           Input: |
             {
-              "featureId": "epic",
+              "featureId": "olgil_epic",
               "platformId": "android"
             }
         - Arn: !GetAtt Lambda.Arn
-          Id: ios-epic-scheduler
+          Id: ios-olgil-epic-scheduler
           Input: |
             {
-              "featureId": "epic",
+              "featureId": "olgil_epic",
+              "platformId": "ios"
+            }
+        - Arn: !GetAtt Lambda.Arn
+          Id: ios-braze-epic-scheduler
+          Input: |
+            {
+              "featureId": "braze_epic",
               "platformId": "ios"
             }
 
