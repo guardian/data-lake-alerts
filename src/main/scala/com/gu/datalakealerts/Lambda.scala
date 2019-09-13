@@ -36,7 +36,6 @@ object Env {
   // Only used when running locally
   lazy val ssmClient = AWSSimpleSystemsManagementClientBuilder
     .standard()
-    .withRegion("eu-west-1")
     .withCredentials(AwsCredentials.notificationCredentials)
     .build()
 
