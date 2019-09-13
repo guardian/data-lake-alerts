@@ -115,6 +115,7 @@ object Features {
           MonitoringQuery(s"""
             |select browser_version, count (distinct page_view_id)
             |from clean.pageview 
+            |cross join unnest (component_events) x (c)
             |where received_date = date '$yesterday'
             |and device_type like '%IOS%'
             |and c.component.type = 'APP_EPIC'
