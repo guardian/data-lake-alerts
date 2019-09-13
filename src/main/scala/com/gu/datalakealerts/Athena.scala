@@ -13,6 +13,7 @@ object Athena {
 
   val client: AmazonAthena = AmazonAthenaClient
     .builder()
+    .withRegion("eu-west-1")
     .withCredentials(AwsCredentials.athenaCredentials)
     .build()
 
