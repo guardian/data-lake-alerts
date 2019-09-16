@@ -94,7 +94,7 @@ object Features {
             |and ab.name like '%epic%'
             |and ab.completed = False
             |group by 1
-          """.stripMargin, 308658)
+          """.stripMargin, 185000)
       }
     }
   }
