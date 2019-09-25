@@ -82,7 +82,7 @@ object Features {
             |and ab.name like '%epic%'
             |and ab.completed = True
             |group by 1
-          """.stripMargin, 42680)
+          """.stripMargin, 48305)
         case iOS =>
           MonitoringQuery(s"""
             |select browser_version, count (distinct page_view_id) as epic_impressions
@@ -121,7 +121,7 @@ object Features {
                              |and c.component.type = 'APP_EPIC'
                              |and c.action = 'VIEW'
                              |group by 1
-          """.stripMargin, 124090)
+          """.stripMargin, 162170)
         case iOS =>
           MonitoringQuery(s"""
             |select browser_version, count (distinct page_view_id)

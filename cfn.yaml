@@ -186,13 +186,6 @@ Resources:
               "featureId": "braze_epic",
               "platformId": "ios"
             }
-        - Arn: !GetAtt Lambda.Arn
-          Id: android-braze-epic-scheduler
-          Input: |
-            {
-              "featureId": "braze_epic",
-              "platformId": "android"
-            }
 
   DataLakeAlertsFailureAlarm:
     Type: AWS::CloudWatch::Alarm
