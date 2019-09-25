@@ -27,10 +27,10 @@ a different table, you'll need to add further permissions to the Cloudformation 
 
 ### Testing your changes
 
-Ensure you are on the correct AWS region (`eu-west-1`). This can be achieved by using the `AWS_DEFAULT_REGION` environment variable:
+Ensure you are on the correct AWS region (`eu-west-1`). This can be achieved by using the `AWS_REGION` environment variable:
 
 ```
-export AWS_DEFAULT_REGION=eu-west-1
+export AWS_REGION=eu-west-1
 ```
 
 1. Obtain `developerPlayground` and `ophan` Janus credentials.

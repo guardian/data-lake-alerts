@@ -82,7 +82,7 @@ object Features {
             |and ab.name like '%epic%'
             |and ab.completed = True
             |group by 1
-          """.stripMargin, 285000)
+          """.stripMargin, 48305)
         case iOS =>
           MonitoringQuery(s"""
             |select browser_version, count (distinct page_view_id) as epic_impressions
@@ -111,6 +111,17 @@ object Features {
 
     override def monitoringQuery(platform: Platform): MonitoringQuery = {
       platform match {
+        case Android =>
+          MonitoringQuery(s"""
+                             |select browser_version, count (distinct page_view_id)
+                             |from clean.pageview
+                             |cross join unnest (component_events) x (c)
+                             |where received_date = date '$yesterday'
+                             |and device_type like '%ANDROID%'
+                             |and c.component.type = 'APP_EPIC'
+                             |and c.action = 'VIEW'
+                             |group by 1
+          """.stripMargin, 162170)
         case iOS =>
           MonitoringQuery(s"""
             |select browser_version, count (distinct page_view_id)
@@ -122,7 +133,6 @@ object Features {
             |and c.action = 'VIEW'
             |group by 1
           """.stripMargin, 103000)
-        case _ => throw new RuntimeException("Only iOS platform is supported.")
       }
     }
   }
