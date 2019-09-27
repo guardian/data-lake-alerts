@@ -36,7 +36,7 @@ object WorkerEnv {
   // Only used when running locally
   lazy val ssmClient = AWSSimpleSystemsManagementClientBuilder
     .standard()
-    .withCredentials(AwsCredentials.notificationCredentials)
+    .withCredentials(AwsCredentials.developerPlaygroundCredentials)
     .build()
 
   // Only used when running locally
@@ -74,7 +74,7 @@ object Notifications {
         cta = "View Query Results [Requires Ophan AWS Console Access]",
         url = s"https://eu-west-1.console.aws.amazon.com/athena/home?region=eu-west-1#query/history/${executionId}")),
       topicArn = env.snsTopicForAlerts,
-      client = AWS.snsClient(AwsCredentials.notificationCredentials))
+      client = AWS.snsClient(AwsCredentials.developerPlaygroundCredentials))
 
     Try(Await.result(notificationAttempt, 10.seconds)) match {
       case Success(_) => logger.info("Sent notification via Anghammarad")
