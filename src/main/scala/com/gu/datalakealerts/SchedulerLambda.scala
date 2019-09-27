@@ -26,14 +26,18 @@ object SchedulerLambda {
     process(env)
   }
 
-  def process(env: SchedulerEnv): Unit = {
+  def process(env: SchedulerEnv, dryRun: Boolean = false): Unit = {
     logger.info(s"Running Data Lake Alerts scheduler...")
     val allMonitoringEvents = Features.allFeaturesWithMonitoring.flatMap {
       feature => feature.platformsToMonitor.map(MonitoringEvent(feature, _))
     }
-    allMonitoringEvents.map { monitoringEvent =>
-      logger.info(s"Invoking worker lambda for monitoring event: $monitoringEvent")
-      Try { InvokeWorker.run(monitoringEvent, env.stage) }
+    if (dryRun) {
+      logger.info(s"The worker lambda will not be invoked as dryRun was set to true. The monitoring events which would have been scheduled are: $allMonitoringEvents")
+    } else {
+      allMonitoringEvents.map { monitoringEvent =>
+        logger.info(s"Invoking worker lambda for monitoring event: $monitoringEvent")
+        Try { InvokeWorker.run(monitoringEvent, env.stage) }
+      }
     }
   }
 
@@ -41,6 +45,6 @@ object SchedulerLambda {
 
 object TestScheduler {
   def main(args: Array[String]): Unit = {
-    SchedulerLambda.process(SchedulerEnv())
+    SchedulerLambda.process(SchedulerEnv(), dryRun = true)
   }
 }
