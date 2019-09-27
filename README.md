@@ -34,7 +34,7 @@ export AWS_REGION=eu-west-1
 ```
 
 1. Obtain `developerPlayground` and `ophan` Janus credentials.
-1. Run `sbt "run my_platform my_feature"` (passing in the relevant `Platform` and `Feature` ids).
+1. Run `sbt "runMain com.gu.datalakealerts.TestWorker my_platform my_feature"` (passing in the relevant `Platform` and `Feature` ids).
 
 Note that when running locally or in the `CODE` environment all alerts will be sent to the `anghammarad.test.alerts` Google Group 
 (instead of the team who maintains the specified production stack).
