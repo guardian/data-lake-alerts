@@ -184,7 +184,7 @@ Resources:
           Input: |
             {
               "featureId": "braze_epic",
-              "platformId": "ios"
+              "platformId": "android"
             }
 
   DataLakeAlertsFailureAlarm:
