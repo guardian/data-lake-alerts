@@ -6,7 +6,7 @@ import com.amazonaws.services.simplesystemsmanagement.model.GetParameterRequest
 import com.gu.anghammarad.{ AWS, Anghammarad }
 import com.gu.anghammarad.models._
 import com.gu.datalakealerts.Features.Feature
-import com.gu.datalakealerts.Lambda.logger
+import com.gu.datalakealerts.WorkerLambda.logger
 import com.gu.datalakealerts.Platforms.Platform
 import org.slf4j.{ Logger, LoggerFactory }
 
@@ -27,11 +27,11 @@ class LambdaInput() {
 
 }
 
-case class Env(app: String, stack: String, stage: String, snsTopicForAlerts: String) {
+case class WorkerEnv(app: String, stack: String, stage: String, snsTopicForAlerts: String) {
   override def toString: String = s"App: $app, Stack: $stack, Stage: $stage\n"
 }
 
-object Env {
+object WorkerEnv {
 
   // Only used when running locally
   lazy val ssmClient = AWSSimpleSystemsManagementClientBuilder
@@ -46,7 +46,7 @@ object Env {
       new GetParameterRequest().withName("/DEV/data-lake-alerts/anghammarad-sns-topic")).getParameter.getValue
   }
 
-  def apply(): Env = Env(
+  def apply(): WorkerEnv = WorkerEnv(
     Option(System.getenv("App")).getOrElse("DEV"),
     Option(System.getenv("Stack")).getOrElse("DEV"),
     Option(System.getenv("Stage")).getOrElse("DEV"),
@@ -55,7 +55,7 @@ object Env {
 
 object Notifications {
 
-  val env = Env()
+  val env = WorkerEnv()
 
   def alert(featureId: String, executionId: String, message: String, stackForProductionAlerts: Stack) = {
 
@@ -85,17 +85,17 @@ object Notifications {
 
 }
 
-object Lambda {
+object WorkerLambda {
 
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   def handler(lambdaInput: LambdaInput, context: Context): Unit = {
-    val env = Env()
+    val env = WorkerEnv()
     logger.info(s"Starting $env")
     process(env, Platforms.platformToMonitor(lambdaInput.platformId), Features.featureToMonitor(lambdaInput.featureId))
   }
 
-  def process(env: Env, platform: Platform, feature: Feature): Unit = {
+  def process(env: WorkerEnv, platform: Platform, feature: Feature): Unit = {
     logger.info(s"Starting monitoring for $feature on $platform")
     val monitoringQuery = feature.monitoringQuery(platform)
     logger.info(s"Query will be:\n ${monitoringQuery.query}")
@@ -116,12 +116,12 @@ object Lambda {
 
 }
 
-object TestIt {
+object TestWorker {
   def main(args: Array[String]): Unit = {
     if (args.length != 2) {
-      logger.error("Please provide a platformId and a featureId e.g. sbt \"run android friction_screen\"")
+      logger.error("Please provide a platformId and a featureId e.g. sbt \"runMain com.gu.datalakealerts.TestWorker android friction_screen\"")
     } else {
-      Lambda.process(Env(), Platforms.platformToMonitor(args(0)), Features.featureToMonitor(args(1)))
+      WorkerLambda.process(WorkerEnv(), Platforms.platformToMonitor(args(0)), Features.featureToMonitor(args(1)))
     }
   }
 }

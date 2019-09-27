@@ -115,10 +115,30 @@ Resources:
               Resource:
                 - arn:aws:s3:::aws-athena-query-results-*/primary/*
 
-  Lambda:
+  DataLakeAlertsSchedulerLambda:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub ${App}-${Stage}
+      FunctionName: !Sub ${App}-scheduler-${Stage}
+      Code:
+        S3Bucket:
+          Ref: DeployBucket
+        S3Key: !Sub ${Stack}/${Stage}/${App}/${App}.jar
+      Environment:
+        Variables:
+          Stage: !Ref Stage
+          Stack: !Ref Stack
+          App: !Ref App
+      Description: Schedules invocations of the DataLakeAlertsWorkerLambda
+      Handler: com.gu.datalakealerts.SchedulerLambda::handler
+      MemorySize: 1536
+      Role: !GetAtt ExecutionRole.Arn
+      Runtime: java8
+      Timeout: 60
+
+  DataLakeAlertsWorkerLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${App}-worker-${Stage}
       Code:
         S3Bucket:
           Ref: DeployBucket
@@ -130,7 +150,7 @@ Resources:
           App: !Ref App
           SnsTopicForAlerts: !Ref SnsTopicForAlerts
       Description: Query the data lake and alert if thresholds are breached
-      Handler: com.gu.datalakealerts.Lambda::handler
+      Handler: com.gu.datalakealerts.WorkerLambda::handler
       MemorySize: 1536
       Role: !GetAtt ExecutionRole.Arn
       Runtime: java8
@@ -140,7 +160,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt Lambda.Arn
+      FunctionName: !GetAtt DataLakeAlertsWorkerLambda.Arn
       Principal: events.amazonaws.com
       SourceArn: !GetAtt MonitoringSchedule.Arn
 
@@ -151,35 +171,35 @@ Resources:
       ScheduleExpression: cron(0 12 ? * MON-FRI *)
       State: !If [IsProduction, ENABLED, DISABLED] # Schedules are disabled in CODE. This allows us to safely test rule creation without wasting money running unnecessary queries
       Targets:
-        - Arn: !GetAtt Lambda.Arn
+        - Arn: !GetAtt DataLakeAlertsWorkerLambda.Arn
           Id: ios-friction-screen-scheduler
           Input: |
             {
               "featureId": "friction_screen",
               "platformId": "ios"
             }
-        - Arn: !GetAtt Lambda.Arn
+        - Arn: !GetAtt DataLakeAlertsWorkerLambda.Arn
           Id: android-friction-screen-scheduler
           Input: |
             {
               "featureId": "friction_screen",
               "platformId": "android"
             }
-        - Arn: !GetAtt Lambda.Arn
+        - Arn: !GetAtt DataLakeAlertsWorkerLambda.Arn
           Id: android-olgil-epic-scheduler
           Input: |
             {
               "featureId": "olgil_epic",
               "platformId": "android"
             }
-        - Arn: !GetAtt Lambda.Arn
+        - Arn: !GetAtt DataLakeAlertsWorkerLambda.Arn
           Id: ios-olgil-epic-scheduler
           Input: |
             {
               "featureId": "olgil_epic",
               "platformId": "ios"
             }
-        - Arn: !GetAtt Lambda.Arn
+        - Arn: !GetAtt DataLakeAlertsWorkerLambda.Arn
           Id: ios-braze-epic-scheduler
           Input: |
             {
@@ -196,7 +216,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Dimensions:
         - Name: FunctionName
-          Value: !Ref Lambda
+          Value: !Ref DataLakeAlertsWorkerLambda
       EvaluationPeriods: 1
       MetricName: Errors
       Namespace: AWS/Lambda
