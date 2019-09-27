@@ -6,7 +6,9 @@ deployments:
     type: aws-lambda
     parameters:
       bucket: ophan-dist
-      functionNames: [data-lake-alerts-]
+      functionNames:
+        - "data-lake-alerts-worker-"
+        - "data-lake-alerts-scheduler-"
       fileName: data-lake-alerts.jar
       prefixStack: false
     dependencies: [data-lake-alerts-cfn]
