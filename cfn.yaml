@@ -160,7 +160,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt DataLakeAlertsWorkerLambda.Arn
+      FunctionName: !GetAtt DataLakeAlertsSchedulerLambda.Arn
       Principal: events.amazonaws.com
       SourceArn: !GetAtt MonitoringSchedule.Arn
 
@@ -171,48 +171,33 @@ Resources:
       ScheduleExpression: cron(0 12 ? * MON-FRI *)
       State: !If [IsProduction, ENABLED, DISABLED] # Schedules are disabled in CODE. This allows us to safely test rule creation without wasting money running unnecessary queries
       Targets:
-        - Arn: !GetAtt DataLakeAlertsWorkerLambda.Arn
-          Id: ios-friction-screen-scheduler
-          Input: |
-            {
-              "featureId": "friction_screen",
-              "platformId": "ios"
-            }
-        - Arn: !GetAtt DataLakeAlertsWorkerLambda.Arn
-          Id: android-friction-screen-scheduler
-          Input: |
-            {
-              "featureId": "friction_screen",
-              "platformId": "android"
-            }
-        - Arn: !GetAtt DataLakeAlertsWorkerLambda.Arn
-          Id: android-olgil-epic-scheduler
-          Input: |
-            {
-              "featureId": "olgil_epic",
-              "platformId": "android"
-            }
-        - Arn: !GetAtt DataLakeAlertsWorkerLambda.Arn
-          Id: ios-olgil-epic-scheduler
-          Input: |
-            {
-              "featureId": "olgil_epic",
-              "platformId": "ios"
-            }
-        - Arn: !GetAtt DataLakeAlertsWorkerLambda.Arn
-          Id: ios-braze-epic-scheduler
-          Input: |
-            {
-              "featureId": "braze_epic",
-              "platformId": "android"
-            }
+        - Arn: !GetAtt DataLakeAlertsSchedulerLambda.Arn
+          Id: data-lake-alerts-schedule
 
-  DataLakeAlertsFailureAlarm:
+  DataLakeAlertsSchedulerAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmActions:
       - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:jacob-test
-      AlarmName: !Sub Data Lake Alerts Monitoring Errors in ${Stage}
+      AlarmName: !Sub Data Lake Alerts Monitoring Errors (Scheduler Lambda) in ${Stage}
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref DataLakeAlertsSchedulerLambda
+      EvaluationPeriods: 1
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Period: 300
+      Statistic: Sum
+      Threshold: 1
+      TreatMissingData: notBreaching
+
+  DataLakeAlertsWorkerAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:jacob-test
+      AlarmName: !Sub Data Lake Alerts Monitoring Errors (Worker Lambda) in ${Stage}
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Dimensions:
         - Name: FunctionName

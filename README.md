@@ -20,7 +20,8 @@ a different table, you'll need to add further permissions to the Cloudformation 
     1. The Athena pricing model is based on data scanned, so try not to scan more data than necessary.
 1. Add `MyFeature extends Feature { ??? }` to the `Features` object. You will need to provide:
     1. A feature id (used when triggering the lambda)
-    1. A function which returns your query (to be run by Athena).
+    1. A list of platforms which the feature is relevant for (defaults to iOS and Android)
+    1. A function which returns your query (to be run by Athena)
     1. A function which performs a check on the query's results and (optionally) 
     additional debug information which will be included in the alert in the event of a failure.
 1. Add your feature to `allFeaturesWithMonitoring` (also in the `Features` object).
@@ -41,23 +42,10 @@ Note that when running locally or in the `CODE` environment all alerts will be s
 
 This allows you to send test alerts in these environments without spamming your team.
 
-### Triggering the monitoring task
+### Monitoring Schedule
 
-The simplest option is to run the monitoring task on a daily basis, using a Scheduled Event.
+Monitoring checks run at [12:00 UTC every weekday](https://github.com/guardian/data-lake-alerts/blob/master/cfn.yaml#L171). 
+To confirm that monitoring has been scheduled correctly for your feature:
 
-1. Add a new Target to the `MonitoringSchedule` (in cfn.yaml). It should look something like this:
-    
-    ```
-    - Arn: !GetAtt Lambda.Arn
-      Id: ios-friction-screen-scheduler
-      Input: |
-        {
-          "featureId": "friction_screen",
-          "platformId": "ios"
-        }
-    ```
-    
-However, as this monitoring task runs as a lambda function, it's possible to use a different trigger
-event (e.g. another lambda) to invoke the function with the relevant input event.
-
-You should deploy this change to `CODE` to ensure that your Cloudformation changes are valid.
+1. Run `sbt "runMain com.gu.datalakealerts.TestScheduler"`
+    1. Confirm that your feature (and platform) are listed in the output.
