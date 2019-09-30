@@ -160,7 +160,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt DataLakeAlertsWorkerLambda.Arn
+      FunctionName: !GetAtt DataLakeAlertsSchedulerLambda.Arn
       Principal: events.amazonaws.com
       SourceArn: !GetAtt MonitoringSchedule.Arn
 
