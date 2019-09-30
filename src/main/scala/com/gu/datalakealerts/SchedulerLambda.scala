@@ -3,8 +3,6 @@ package com.gu.datalakealerts
 import com.amazonaws.services.lambda.runtime.Context
 import org.slf4j.{ Logger, LoggerFactory }
 
-import scala.util.Try
-
 case class SchedulerEnv(app: String, stack: String, stage: String) {
   override def toString: String = s"App: $app, Stack: $stack, Stage: $stage\n"
 }
@@ -36,7 +34,7 @@ object SchedulerLambda {
     } else {
       allMonitoringEvents.map { monitoringEvent =>
         logger.info(s"Invoking worker lambda for monitoring event: $monitoringEvent")
-        Try { InvokeWorker.run(monitoringEvent, env.stage) }
+        InvokeWorker.run(monitoringEvent, env.stage)
       }
     }
   }
