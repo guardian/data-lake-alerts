@@ -41,23 +41,10 @@ Note that when running locally or in the `CODE` environment all alerts will be s
 
 This allows you to send test alerts in these environments without spamming your team.
 
-### Triggering the monitoring task
+### Monitoring Schedule
 
-The simplest option is to run the monitoring task on a daily basis, using a Scheduled Event.
+Monitoring checks run at [12:00 UTC every weekday](https://github.com/guardian/data-lake-alerts/blob/master/cfn.yaml#L171). 
+To confirm that monitoring has been scheduled correctly for your feature:
 
-1. Add a new Target to the `MonitoringSchedule` (in cfn.yaml). It should look something like this:
-    
-    ```
-    - Arn: !GetAtt Lambda.Arn
-      Id: ios-friction-screen-scheduler
-      Input: |
-        {
-          "featureId": "friction_screen",
-          "platformId": "ios"
-        }
-    ```
-    
-However, as this monitoring task runs as a lambda function, it's possible to use a different trigger
-event (e.g. another lambda) to invoke the function with the relevant input event.
-
-You should deploy this change to `CODE` to ensure that your Cloudformation changes are valid.
+1. Run `sbt "runMain com.gu.datalakealerts.TestScheduler"`
+    1. Confirm that your feature (and platform) are listed in the output.
