@@ -9,7 +9,7 @@ object Features {
 
   val allFeaturesWithMonitoring: List[Feature] = List(FrictionScreen, OlgilEpic, BrazeEpic)
 
-  val yesterday: LocalDate = LocalDate.now().minusDays(1)
+  def yesterday: LocalDate = LocalDate.now().minusDays(1)
 
   def featureToMonitor(featureId: String): Feature = {
     allFeaturesWithMonitoring
