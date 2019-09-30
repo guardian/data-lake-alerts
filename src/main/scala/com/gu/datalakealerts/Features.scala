@@ -7,8 +7,9 @@ import com.gu.datalakealerts.Platforms.{ Android, iOS, Platform }
 
 object Features {
 
-  val yesterday: LocalDate = LocalDate.now().minusDays(1)
   val allFeaturesWithMonitoring: List[Feature] = List(FrictionScreen, OlgilEpic, BrazeEpic)
+
+  def yesterday: LocalDate = LocalDate.now().minusDays(1)
 
   def featureToMonitor(featureId: String): Feature = {
     allFeaturesWithMonitoring
@@ -21,6 +22,7 @@ object Features {
 
   sealed trait Feature {
     val id: String
+    val platformsToMonitor: List[Platform] = List(iOS, Android)
     def monitoringQuery(platform: Platform): MonitoringQuery
     def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult
   }

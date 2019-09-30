@@ -5,11 +5,11 @@ import com.amazonaws.auth.profile.ProfileCredentialsProvider
 
 object AwsCredentials {
 
-  val athenaCredentials = new AWSCredentialsProviderChain(
+  val ophanCredentials = new AWSCredentialsProviderChain(
     new ProfileCredentialsProvider("ophan"),
     new EnvironmentVariableCredentialsProvider())
 
-  val notificationCredentials = new AWSCredentialsProviderChain(
+  val developerPlaygroundCredentials = new AWSCredentialsProviderChain(
     new ProfileCredentialsProvider("developerPlayground"),
     new EnvironmentVariableCredentialsProvider())
 

@@ -13,7 +13,7 @@ object Athena {
 
   val client: AmazonAthena = AmazonAthenaClient
     .builder()
-    .withCredentials(AwsCredentials.athenaCredentials)
+    .withCredentials(AwsCredentials.ophanCredentials)
     .build()
 
   def startQuery(monitoringQuery: MonitoringQuery): StartQueryExecutionResult = {
