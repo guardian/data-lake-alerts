@@ -140,6 +140,7 @@ object Features {
   }
   case object OlgilBanner extends Feature {
     override val id = "olgil_banner"
+    override val platformsToMonitor = List(iOS)
 
     override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
       val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
@@ -170,6 +171,7 @@ object Features {
 
   case object BrazeBanner extends Feature {
     override val id = "braze_banner"
+    override val platformsToMonitor = List(iOS)
 
     override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
       val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
