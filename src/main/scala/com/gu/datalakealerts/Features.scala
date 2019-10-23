@@ -7,7 +7,7 @@ import com.gu.datalakealerts.Platforms.{ Android, iOS, Platform }
 
 object Features {
 
-  val allFeaturesWithMonitoring: List[Feature] = List(FrictionScreen, OlgilEpic, BrazeEpic)
+  val allFeaturesWithMonitoring: List[Feature] = List(FrictionScreen, OlgilEpic, BrazeEpic, OlgilBanner)
 
   def yesterday: LocalDate = LocalDate.now().minusDays(1)
 
@@ -135,6 +135,65 @@ object Features {
             |and c.action = 'VIEW'
             |group by 1
           """.stripMargin, 103000)
+      }
+    }
+  }
+  case object OlgilBanner extends Feature {
+    override val id = "olgil_banner"
+    override val platformsToMonitor = List(iOS)
+
+    override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
+      val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
+      val totalImpressions = impressionCountsByAppVersion.map(_.impressions).sum
+      val resultIsAcceptable = totalImpressions > minimumImpressionsThreshold
+      MonitoringQueryResult(resultIsAcceptable, AlertInformation.describeResults(totalImpressions, minimumImpressionsThreshold))
+    }
+
+    override def monitoringQuery(platform: Platform): MonitoringQuery = {
+      platform match {
+        case iOS =>
+          MonitoringQuery(s"""
+            |select browser_version, count (distinct page_view_id) as banner_impressions
+            |from clean.pageview
+            |cross join unnest (ab_tests) x (ab)
+            |where received_date = date '$yesterday'
+            |and path not like '%.mp3%'
+            |and device_type like '%IOS%'
+            |and ab.name like '%banner%'
+            |and ab.completed = False
+            |group by 1
+          """.stripMargin, 33280)
+        case _ => throw new RuntimeException("Only iOS platform is supported.")
+
+      }
+    }
+  }
+
+  case object BrazeBanner extends Feature {
+    override val id = "braze_banner"
+    override val platformsToMonitor = List(iOS)
+
+    override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
+      val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
+      val totalImpressions = impressionCountsByAppVersion.map(_.impressions).sum
+      val resultIsAcceptable = totalImpressions > minimumImpressionsThreshold
+      MonitoringQueryResult(resultIsAcceptable, AlertInformation.describeResults(totalImpressions, minimumImpressionsThreshold))
+    }
+
+    override def monitoringQuery(platform: Platform): MonitoringQuery = {
+      platform match {
+        case iOS =>
+          MonitoringQuery(s"""
+            |select browser_version, count (distinct page_view_id)
+            |from clean.pageview 
+            |cross join unnest (component_events) x (c)
+            |where received_date = date '$yesterday'
+            |and device_type like '%IOS%'
+            |and c.component.type = 'APP_ENGAGEMENT_BANNER'
+            |and c.action = 'VIEW'
+            |group by 1
+          """.stripMargin, 0)
+        case _ => throw new RuntimeException("Only iOS platform is supported.")
       }
     }
   }
