@@ -49,3 +49,7 @@ To confirm that monitoring has been scheduled correctly for your feature:
 
 1. Run `sbt "runMain com.gu.datalakealerts.TestScheduler"`
     1. Confirm that your feature (and platform) are listed in the output.
+
+### Checking your changes in production
+
+If you want to confirm that your monitoring task is scheduled correctly in production, or see the results of a successful query, you can view the [logs using Kibana](https://logs.gutools.co.uk/s/ophan/app/kibana#/discover?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-24h,to:now))&_a=(columns:!(_source),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:'581f7b00-c4df-11e9-bc08-9d1af4d9c1d5',key:app,negate:!f,params:(query:data-lake-alerts),type:phrase,value:data-lake-alerts),query:(match:(app:(query:data-lake-alerts,type:phrase))))),index:'581f7b00-c4df-11e9-bc08-9d1af4d9c1d5',interval:auto,query:(language:kuery,query:''),sort:!('@timestamp',desc))). Hint: searching these logs for your `feature_id` might save you some time.
