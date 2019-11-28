@@ -59,12 +59,12 @@ object Features {
   }
 
   case object OlgilEpic extends Feature {
-    override val id = "olgil_epic"
+    val id = "olgil_epic"
 
-    override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
+    def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
       ResultHandler.checkThresholdMetAcrossAppVersions(resultSet, minimumImpressionsThreshold)
 
-    override def monitoringQuery(platform: Platform): MonitoringQuery = {
+    def monitoringQuery(platform: Platform): MonitoringQuery = {
       platform match {
         case Android =>
           MonitoringQuery(s"""
@@ -95,12 +95,12 @@ object Features {
   }
 
   case object BrazeEpic extends Feature {
-    override val id = "braze_epic"
+    val id = "braze_epic"
 
-    override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
+    def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
       ResultHandler.checkThresholdMetAcrossAppVersions(resultSet, minimumImpressionsThreshold)
 
-    override def monitoringQuery(platform: Platform): MonitoringQuery = {
+    def monitoringQuery(platform: Platform): MonitoringQuery = {
       platform match {
         case Android =>
           MonitoringQuery(s"""
@@ -128,13 +128,13 @@ object Features {
     }
   }
   case object OlgilBanner extends Feature {
-    override val id = "olgil_banner"
+    val id = "olgil_banner"
     override val platformsToMonitor = List(iOS)
 
-    override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
+    def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
       ResultHandler.checkThresholdMetAcrossAppVersions(resultSet, minimumImpressionsThreshold)
 
-    override def monitoringQuery(platform: Platform): MonitoringQuery = {
+    def monitoringQuery(platform: Platform): MonitoringQuery = {
       platform match {
         case iOS =>
           MonitoringQuery(s"""
@@ -155,13 +155,13 @@ object Features {
   }
 
   case object BrazeBanner extends Feature {
-    override val id = "braze_banner"
+    val id = "braze_banner"
     override val platformsToMonitor = List(iOS)
 
-    override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
+    def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
       ResultHandler.checkThresholdMetAcrossAppVersions(resultSet, minimumImpressionsThreshold)
 
-    override def monitoringQuery(platform: Platform): MonitoringQuery = {
+    def monitoringQuery(platform: Platform): MonitoringQuery = {
       platform match {
         case iOS =>
           MonitoringQuery(s"""
