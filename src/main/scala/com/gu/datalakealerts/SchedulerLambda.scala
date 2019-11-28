@@ -30,11 +30,15 @@ object SchedulerLambda {
       feature => feature.platformsToMonitor.map(MonitoringEvent(feature, _))
     }
     if (dryRun) {
-      logger.info(s"The worker lambda will not be invoked as dryRun was set to true. The monitoring events which would have been scheduled are: $allMonitoringEvents")
+      logger.info(s"No queries will be started as dryRun was set to true. The monitoring events which would have been scheduled are: $allMonitoringEvents")
     } else {
-      allMonitoringEvents.map { monitoringEvent =>
-        logger.info(s"Invoking worker lambda for monitoring event: $monitoringEvent")
-        InvokeWorker.run(monitoringEvent, env.stage)
+      logger.info(s"Attempting to start queries for the following monitoring events: $allMonitoringEvents")
+      allMonitoringEvents.map { event =>
+        logger.info(s"Starting monitoring for ${event.feature} on ${event.platform}")
+        val monitoringQuery = event.feature.monitoringQuery(event.platform)
+        logger.info(s"Query will be:\n ${monitoringQuery.query}")
+        val queryExecutionId = Athena.startQuery(monitoringQuery).getQueryExecutionId //TODO wrap in a Try
+        // Store to SQS
       }
     }
   }
