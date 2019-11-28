@@ -122,7 +122,7 @@ object WorkerLambda {
   def process(env: WorkerEnv, feature: Feature, platform: Platform, queryExecutionId: String): Unit = {
 
     // Don't interact with SQS when running locally (to avoid all contributors requiring Ophan dev account access)
-    val queryStatus = if (env.stage == "DEV") { Athena.retrieveQueryStatus(queryExecutionId) } else { "SUCCEEDED" }
+    val queryStatus = if (env.stage == "DEV") { "SUCCEEDED" } else { Athena.retrieveQueryStatus(queryExecutionId) }
 
     if (Athena.queryHasSuccessfulState(queryStatus)) {
       analyseQueryResults(feature, platform, queryExecutionId)
