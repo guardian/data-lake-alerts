@@ -3,7 +3,8 @@ package com.gu.datalakealerts
 import java.time.LocalDate
 
 import com.amazonaws.services.athena.model.ResultSet
-import com.gu.datalakealerts.Platforms.{ Android, iOS, Platform }
+import com.gu.datalakealerts.Platforms.{ Android, Platform, iOS }
+import com.gu.datalakealerts.apps.ResultHandler
 
 object Features {
 
@@ -52,24 +53,16 @@ object Features {
 
     }
 
-    def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
-      val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
-      val totalImpressions = impressionCountsByAppVersion.map(_.impressions).sum
-      val resultIsAcceptable = totalImpressions > minimumImpressionsThreshold
-      MonitoringQueryResult(resultIsAcceptable, AlertInformation.describeResults(totalImpressions, minimumImpressionsThreshold))
-    }
+    def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
+      ResultHandler.checkThresholdMetAcrossAppVersions(resultSet, minimumImpressionsThreshold)
 
   }
 
   case object OlgilEpic extends Feature {
     override val id = "olgil_epic"
 
-    override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
-      val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
-      val totalImpressions = impressionCountsByAppVersion.map(_.impressions).sum
-      val resultIsAcceptable = totalImpressions > minimumImpressionsThreshold
-      MonitoringQueryResult(resultIsAcceptable, AlertInformation.describeResults(totalImpressions, minimumImpressionsThreshold))
-    }
+    override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
+      ResultHandler.checkThresholdMetAcrossAppVersions(resultSet, minimumImpressionsThreshold)
 
     override def monitoringQuery(platform: Platform): MonitoringQuery = {
       platform match {
@@ -104,12 +97,8 @@ object Features {
   case object BrazeEpic extends Feature {
     override val id = "braze_epic"
 
-    override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
-      val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
-      val totalImpressions = impressionCountsByAppVersion.map(_.impressions).sum
-      val resultIsAcceptable = totalImpressions > minimumImpressionsThreshold
-      MonitoringQueryResult(resultIsAcceptable, AlertInformation.describeResults(totalImpressions, minimumImpressionsThreshold))
-    }
+    override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
+      ResultHandler.checkThresholdMetAcrossAppVersions(resultSet, minimumImpressionsThreshold)
 
     override def monitoringQuery(platform: Platform): MonitoringQuery = {
       platform match {
@@ -142,12 +131,8 @@ object Features {
     override val id = "olgil_banner"
     override val platformsToMonitor = List(iOS)
 
-    override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
-      val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
-      val totalImpressions = impressionCountsByAppVersion.map(_.impressions).sum
-      val resultIsAcceptable = totalImpressions > minimumImpressionsThreshold
-      MonitoringQueryResult(resultIsAcceptable, AlertInformation.describeResults(totalImpressions, minimumImpressionsThreshold))
-    }
+    override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
+      ResultHandler.checkThresholdMetAcrossAppVersions(resultSet, minimumImpressionsThreshold)
 
     override def monitoringQuery(platform: Platform): MonitoringQuery = {
       platform match {
@@ -173,12 +158,8 @@ object Features {
     override val id = "braze_banner"
     override val platformsToMonitor = List(iOS)
 
-    override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
-      val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
-      val totalImpressions = impressionCountsByAppVersion.map(_.impressions).sum
-      val resultIsAcceptable = totalImpressions > minimumImpressionsThreshold
-      MonitoringQueryResult(resultIsAcceptable, AlertInformation.describeResults(totalImpressions, minimumImpressionsThreshold))
-    }
+    override def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
+      ResultHandler.checkThresholdMetAcrossAppVersions(resultSet, minimumImpressionsThreshold)
 
     override def monitoringQuery(platform: Platform): MonitoringQuery = {
       platform match {

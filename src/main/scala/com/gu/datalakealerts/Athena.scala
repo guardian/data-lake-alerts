@@ -1,11 +1,9 @@
 package com.gu.datalakealerts
 
 import com.amazonaws.services.athena.{ AmazonAthena, AmazonAthenaClient }
-import com.amazonaws.services.athena.model.{ GetQueryExecutionRequest, GetQueryResultsRequest, ResultConfiguration, ResultSet, StartQueryExecutionRequest, StartQueryExecutionResult }
+import com.amazonaws.services.athena.model.{ GetQueryExecutionRequest, GetQueryResultsRequest, ResultSet, StartQueryExecutionRequest, StartQueryExecutionResult }
 import com.gu.datalakealerts.Features.MonitoringQuery
 import org.slf4j.{ Logger, LoggerFactory }
-
-import scala.collection.JavaConverters._
 
 object Athena {
 
@@ -44,21 +42,6 @@ object Athena {
     val retrieveQueryRequest: GetQueryResultsRequest = new GetQueryResultsRequest()
       .withQueryExecutionId(queryExecutionId)
     client.getQueryResults(retrieveQueryRequest).getResultSet
-  }
-
-}
-
-object ImpressionCounts {
-
-  case class VersionWithImpressionCount(versionNumber: String, impressions: Int) {
-    def summary = s"$versionNumber: $impressions"
-  }
-
-  def getImpressionCounts(result: ResultSet): List[VersionWithImpressionCount] = {
-    result.getRows.asScala.toList.drop(1).map { row =>
-      val datum = row.getData
-      VersionWithImpressionCount(datum.get(0).getVarCharValue, datum.get(1).getVarCharValue.toInt)
-    }
   }
 
 }
