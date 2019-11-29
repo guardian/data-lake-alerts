@@ -1,35 +1,23 @@
 package com.gu.datalakealerts
 
 import com.amazonaws.services.lambda.runtime.Context
+import com.amazonaws.services.lambda.runtime.events.SQSEvent
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder
 import com.amazonaws.services.simplesystemsmanagement.model.GetParameterRequest
 import com.gu.anghammarad.{ AWS, Anghammarad }
 import com.gu.anghammarad.models._
+import com.gu.datalakealerts.EventModels.{ MonitoringEvent, MonitoringEventWithQueryInfo }
 import com.gu.datalakealerts.Features.Feature
 import com.gu.datalakealerts.WorkerLambda.logger
 import com.gu.datalakealerts.Platforms.Platform
 import org.slf4j.{ Logger, LoggerFactory }
+import io.circe.parser.decode
 
+import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{ Failure, Success, Try }
-
-class LambdaInput() {
-
-  var featureId: String = _
-  def getFeatureId(): String = featureId
-  def setFeatureId(theFeature: String): Unit = featureId = theFeature
-
-  var platformId: String = _
-  def getPlatformId(): String = platformId
-  def setPlatformId(thePlatform: String): Unit = platformId = thePlatform
-
-  var queryExecutionId: String = _
-  def getqueryExecutionId(): String = queryExecutionId
-  def setqueryExecutionId(theQueryExecutionId: String): Unit = queryExecutionId = theQueryExecutionId
-
-}
 
 case class WorkerEnv(app: String, stack: String, stage: String, snsTopicForAlerts: String) {
   override def toString: String = s"App: $app, Stack: $stack, Stage: $stage\n"
@@ -93,14 +81,19 @@ object WorkerLambda {
 
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
-  def handler(lambdaInput: LambdaInput, context: Context): Unit = {
+  def handler(lambdaInput: SQSEvent, context: Context): Unit = {
     val env = WorkerEnv()
     logger.info(s"Starting $env")
-    process(
-      env,
-      Features.featureToMonitor(lambdaInput.featureId),
-      Platforms.platformToMonitor(lambdaInput.platformId),
-      lambdaInput.queryExecutionId)
+    lambdaInput.getRecords.asScala.map { rawInput =>
+      val parseAttempt = decode[MonitoringEventWithQueryInfo](rawInput.getBody)
+      parseAttempt.map { eventWithQueryInfo =>
+        process(
+          env,
+          eventWithQueryInfo.monitoringEvent.feature,
+          eventWithQueryInfo.monitoringEvent.platform,
+          eventWithQueryInfo.queryExecutionId)
+      }
+    }
   }
 
   def analyseQueryResults(feature: Feature, platform: Platform, queryExecutionId: String) = {
@@ -120,10 +113,7 @@ object WorkerLambda {
   }
 
   def process(env: WorkerEnv, feature: Feature, platform: Platform, queryExecutionId: String): Unit = {
-
-    // Don't interact with SQS when running locally (to avoid all contributors requiring Ophan dev account access)
-    val queryStatus = if (env.stage == "DEV") { "SUCCEEDED" } else { Athena.retrieveQueryStatus(queryExecutionId) }
-
+    val queryStatus = Athena.retrieveQueryStatus(queryExecutionId)
     if (Athena.queryHasSuccessfulState(queryStatus)) {
       analyseQueryResults(feature, platform, queryExecutionId)
     } else if (Athena.queryHasUnsuccessfulState(queryStatus)) {
@@ -135,23 +125,15 @@ object WorkerLambda {
       )
     } else {
       val delayBeforeNextCheck = 180
-      logger.info(s"Query for ${feature.id} on ${platform.id} is still running. Adding a new message to SQS... will try again in ${delayBeforeNextCheck} seconds")
+      val queueName = Sqs.queueName(env.app, env.stage)
+      logger.info(s"Query for ${feature.id} on ${platform.id} is still running. Adding a new message to $queueName queue... will try again in ${delayBeforeNextCheck} seconds")
       // It's necessary to explicitly add the message back onto the queue; by default a successful lambda execution will remove the message
       Sqs.enqueueRunningQuery(
         MonitoringEventWithQueryInfo(MonitoringEvent(feature, platform), queryExecutionId),
-        Sqs.queueName(env.app, env.stage),
+        queueName,
         180)
     }
   }
 
 }
 
-object TestWorker {
-  def main(args: Array[String]): Unit = {
-    if (args.length != 3) {
-      logger.error("Please provide a featureId, a platformId, and a query execution id e.g. sbt \"runMain com.gu.datalakealerts.TestWorker friction_screen android 0c97cd8a-8b23-4f53-996b-97c357ee089a\"")
-    } else {
-      WorkerLambda.process(WorkerEnv(), Features.featureToMonitor(args(0)), Platforms.platformToMonitor(args(1)), args(2))
-    }
-  }
-}
