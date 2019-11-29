@@ -176,6 +176,17 @@ Resources:
         - Key: App
           Value: !Ref App
 
+  DataLakeAlertsEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    DependsOn:
+      - DataLakeAlertsQueue
+      - DataLakeAlertsWorkerLambda
+    Properties:
+      BatchSize: 1
+      Enabled: True
+      EventSourceArn: !GetAtt DataLakeAlertsQueue.Arn
+      FunctionName: !Sub ${App}-worker-${Stage}
+
   MonitoringSchedulePermission:
     Type: AWS::Lambda::Permission
     Properties:
