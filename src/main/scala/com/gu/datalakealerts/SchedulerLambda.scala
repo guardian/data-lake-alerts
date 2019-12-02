@@ -42,7 +42,7 @@ object SchedulerLambda {
     Sqs.enqueueRunningQuery(eventWithQueryInfo, queueName, 30)
   }
 
-  val allMonitoringEvents: List[MonitoringEvent] = Features.allFeaturesWithMonitoring.flatMap {
+  def allMonitoringEvents: List[MonitoringEvent] = Features.allFeaturesWithMonitoring.flatMap {
     feature => feature.platformsToMonitor.map(MonitoringEvent(feature, _))
   }
 
