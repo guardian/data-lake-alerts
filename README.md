@@ -35,7 +35,7 @@ export AWS_REGION=eu-west-1
 ```
 
 1. Obtain `developerPlayground` and `ophan` Janus credentials.
-1. Run `sbt "runMain com.gu.datalakealerts.TestWorker my_platform my_feature"` (passing in the relevant `Platform` and `Feature` ids).
+1. Run `sbt "test:runMain com.gu.datalakealerts.integration.FullTestWithLocalPolling friction_screen android"` (passing in the relevant `Platform` and `Feature` ids).
 
 Note that when running locally or in the `CODE` environment all alerts will be sent to the `anghammarad.test.alerts` Google Group 
 (instead of the team who maintains the specified production stack).
@@ -47,7 +47,7 @@ This allows you to send test alerts in these environments without spamming your 
 Monitoring checks run at [12:00 UTC every weekday](https://github.com/guardian/data-lake-alerts/blob/master/cfn.yaml#L171). 
 To confirm that monitoring has been scheduled correctly for your feature:
 
-1. Run `sbt "runMain com.gu.datalakealerts.TestScheduler"`
+1. Run `sbt "test:runMain com.gu.datalakealerts.integration.ConfirmTaskWillBeScheduled"`
     1. Confirm that your feature (and platform) are listed in the output.
 
 ### Checking your changes in production
