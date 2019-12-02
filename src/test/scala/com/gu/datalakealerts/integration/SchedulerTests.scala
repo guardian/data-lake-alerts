@@ -23,3 +23,11 @@ object ScheduleAndQueueSingleQuery {
     }
   }
 }
+
+// Requires Ophan (Developer) Janus credentials
+object ScheduleAllQueries {
+  def main(args: Array[String]): Unit = {
+    val env = SchedulerEnv(app = "data-lake-alerts", stack = "stack", stage = "CODE") // Run with code env to send an event to a real SQS queue
+    SchedulerLambda.process(env, dryRun = false, SchedulerLambda.allMonitoringEvents)
+  }
+}
