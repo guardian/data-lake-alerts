@@ -39,7 +39,7 @@ object SchedulerLambda {
     val eventWithQueryInfo = MonitoringEventWithQueryInfo(event, queryExecutionId)
     val queueName = Sqs.queueName(env.app, env.stage)
     logger.info(s"Adding query id $queryExecutionId to the $queueName queue so that the results can be checked later...")
-    Sqs.enqueueRunningQuery(eventWithQueryInfo, queueName, 30)
+    Sqs.enqueueRunningQuery(eventWithQueryInfo, queueName, 30) //Delay for 30 seconds to avoid triggering the worker immediately after queries are started
   }
 
   def allMonitoringEvents: List[MonitoringEvent] = Features.allFeaturesWithMonitoring.flatMap {
