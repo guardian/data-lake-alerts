@@ -55,6 +55,13 @@ Resources:
               Action:
                 - lambda:InvokeFunction
               Resource: "*"
+        - PolicyName: sqs
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action: sqs:*
+              Resource:
+                - !GetAtt DataLakeAlertsQueue.Arn
         - PolicyName: notify
           PolicyDocument:
             Statement:
@@ -133,7 +140,7 @@ Resources:
       MemorySize: 1536
       Role: !GetAtt ExecutionRole.Arn
       Runtime: java8
-      Timeout: 60
+      Timeout: 120
 
   DataLakeAlertsWorkerLambda:
     Type: AWS::Lambda::Function
@@ -154,7 +161,31 @@ Resources:
       MemorySize: 1536
       Role: !GetAtt ExecutionRole.Arn
       Runtime: java8
-      Timeout: 900
+      Timeout: 120
+
+  DataLakeAlertsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub ${App}-${Stage}
+      VisibilityTimeout: 120
+      Tags:
+        - Key: Stage
+          Value: !Ref Stage
+        - Key: Stack
+          Value: !Ref Stack
+        - Key: App
+          Value: !Ref App
+
+  DataLakeAlertsEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    DependsOn:
+      - DataLakeAlertsQueue
+      - DataLakeAlertsWorkerLambda
+    Properties:
+      BatchSize: 1
+      Enabled: True
+      EventSourceArn: !GetAtt DataLakeAlertsQueue.Arn
+      FunctionName: !Sub ${App}-worker-${Stage}
 
   MonitoringSchedulePermission:
     Type: AWS::Lambda::Permission

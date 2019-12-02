@@ -1,31 +1,23 @@
 package com.gu.datalakealerts
 
 import com.amazonaws.services.lambda.runtime.Context
+import com.amazonaws.services.lambda.runtime.events.SQSEvent
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder
 import com.amazonaws.services.simplesystemsmanagement.model.GetParameterRequest
 import com.gu.anghammarad.{ AWS, Anghammarad }
 import com.gu.anghammarad.models._
+import com.gu.datalakealerts.EventModels.{ MonitoringEvent, MonitoringEventWithQueryInfo }
 import com.gu.datalakealerts.Features.Feature
 import com.gu.datalakealerts.WorkerLambda.logger
 import com.gu.datalakealerts.Platforms.Platform
 import org.slf4j.{ Logger, LoggerFactory }
+import io.circe.parser.decode
 
+import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{ Failure, Success, Try }
-
-class LambdaInput() {
-
-  var featureId: String = _
-  def getFeatureId(): String = featureId
-  def setFeatureId(theFeature: String): Unit = featureId = theFeature
-
-  var platformId: String = _
-  def getPlatformId(): String = platformId
-  def setPlatformId(thePlatform: String): Unit = platformId = thePlatform
-
-}
 
 case class WorkerEnv(app: String, stack: String, stage: String, snsTopicForAlerts: String) {
   override def toString: String = s"App: $app, Stack: $stack, Stage: $stage\n"
@@ -57,7 +49,7 @@ object Notifications {
 
   val env = WorkerEnv()
 
-  def alert(featureId: String, executionId: String, message: String, stackForProductionAlerts: Stack) = {
+  def alert(feature: Feature, executionId: String, message: String, stackForProductionAlerts: Stack) = {
 
     val stack = env.stage match {
       case "PROD" => stackForProductionAlerts
@@ -65,7 +57,7 @@ object Notifications {
     }
 
     val notificationAttempt = Anghammarad.notify(
-      subject = s"Data Lake Monitoring | Check Failed for ${featureId}",
+      subject = s"Data Lake Monitoring | Check Failed for ${feature.id}",
       message = message,
       sourceSystem = "Data Lake Alerts",
       channel = Email,
@@ -89,22 +81,28 @@ object WorkerLambda {
 
   val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
-  def handler(lambdaInput: LambdaInput, context: Context): Unit = {
+  def handler(lambdaInput: SQSEvent, context: Context): Unit = {
     val env = WorkerEnv()
     logger.info(s"Starting $env")
-    process(env, Platforms.platformToMonitor(lambdaInput.platformId), Features.featureToMonitor(lambdaInput.featureId))
+    lambdaInput.getRecords.asScala.map { rawInput =>
+      val parseAttempt = decode[MonitoringEventWithQueryInfo](rawInput.getBody)
+      parseAttempt.map { eventWithQueryInfo =>
+        process(
+          env,
+          eventWithQueryInfo.monitoringEvent.feature,
+          eventWithQueryInfo.monitoringEvent.platform,
+          eventWithQueryInfo.queryExecutionId)
+      }
+    }
   }
 
-  def process(env: WorkerEnv, platform: Platform, feature: Feature): Unit = {
-    logger.info(s"Starting monitoring for $feature on $platform")
-    val monitoringQuery = feature.monitoringQuery(platform)
-    logger.info(s"Query will be:\n ${monitoringQuery.query}")
-    val queryExecutionId = Athena.startQuery(monitoringQuery).getQueryExecutionId
-    Athena.waitForQueryToComplete(queryExecutionId)
-    val monitoringResult = feature.monitoringQueryResult(Athena.retrieveResult(queryExecutionId), monitoringQuery.minimumImpressionsThreshold)
+  def analyseQueryResults(feature: Feature, platform: Platform, queryExecutionId: String) = {
+    val monitoringResult = feature.monitoringQueryResult(
+      Athena.retrieveResult(queryExecutionId),
+      feature.monitoringQuery(platform).minimumImpressionsThreshold)
     if (!monitoringResult.resultIsAcceptable) {
       Notifications.alert(
-        featureId = feature.id,
+        feature = feature,
         executionId = queryExecutionId,
         monitoringResult.additionalInformation,
         stackForProductionAlerts = Stack(platform.id) //This stack will be overridden in other environments (to avoid spam)
@@ -114,14 +112,28 @@ object WorkerLambda {
     }
   }
 
-}
-
-object TestWorker {
-  def main(args: Array[String]): Unit = {
-    if (args.length != 2) {
-      logger.error("Please provide a platformId and a featureId e.g. sbt \"runMain com.gu.datalakealerts.TestWorker android friction_screen\"")
+  def process(env: WorkerEnv, feature: Feature, platform: Platform, queryExecutionId: String): Unit = {
+    val queryStatus = Athena.retrieveQueryStatus(queryExecutionId)
+    if (Athena.queryHasSuccessfulState(queryStatus)) {
+      analyseQueryResults(feature, platform, queryExecutionId)
+    } else if (Athena.queryHasUnsuccessfulState(queryStatus)) {
+      Notifications.alert(
+        feature,
+        queryExecutionId,
+        "Athena failed to complete your query. Consequently data-lake-alerts was unable to check the results today.",
+        stackForProductionAlerts = Stack(platform.id) //This stack will be overridden in other environments (to avoid spam)
+      )
     } else {
-      WorkerLambda.process(WorkerEnv(), Platforms.platformToMonitor(args(0)), Features.featureToMonitor(args(1)))
+      val delayBeforeNextCheck = 180
+      val queueName = Sqs.queueName(env.app, env.stage)
+      logger.info(s"Query for ${feature.id} on ${platform.id} is still running. Adding a new message to $queueName queue... will try again in ${delayBeforeNextCheck} seconds")
+      // It's necessary to explicitly add the message back onto the queue; by default a successful lambda execution will remove the message
+      Sqs.enqueueRunningQuery(
+        MonitoringEventWithQueryInfo(MonitoringEvent(feature, platform), queryExecutionId),
+        queueName,
+        180)
     }
   }
+
 }
+
