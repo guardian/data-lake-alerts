@@ -8,7 +8,7 @@ import com.gu.datalakealerts.apps.ResultHandler
 
 object Features {
 
-  val allFeaturesWithMonitoring: List[Feature] = List(FrictionScreen, OlgilEpic, BrazeEpic, OlgilBanner)
+  val allFeaturesWithMonitoring: List[Feature] = List(FrictionScreen, OlgilEpic, BrazeEpic, OlgilBanner, BrazeBanner)
 
   def yesterday: LocalDate = LocalDate.now().minusDays(1)
 
@@ -147,7 +147,7 @@ object Features {
             |and ab.name like '%banner%'
             |and ab.completed = False
             |group by 1
-          """.stripMargin, 33280)
+          """.stripMargin, 17038)
         case _ => throw new RuntimeException("Only iOS platform is supported.")
 
       }
@@ -173,7 +173,7 @@ object Features {
             |and c.component.type = 'APP_ENGAGEMENT_BANNER'
             |and c.action = 'VIEW'
             |group by 1
-          """.stripMargin, 0)
+          """.stripMargin, 2893)
         case _ => throw new RuntimeException("Only iOS platform is supported.")
       }
     }
