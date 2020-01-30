@@ -18,12 +18,10 @@ a different table, you'll need to add further permissions to the Cloudformation 
 
 1. Write your query and test it using Athena. 
     1. The Athena pricing model is based on data scanned, so try not to scan more data than necessary.
-1. Add `MyFeature extends Feature { ??? }` to the `Features` object. You will need to provide:
+1. Add `case object MyFeature extends Feature { ??? }` to the `Features` object. You will need to provide:
     1. A feature id (used when triggering the lambda)
     1. A list of platforms which the feature is relevant for (defaults to iOS and Android)
-    1. A function which returns your query (to be run by Athena)
-    1. A function which performs a check on the query's results and (optionally) 
-    additional debug information which will be included in the alert in the event of a failure.
+    1. A function which returns your query (to be run by Athena) and a list of checks to run when the query completes
 1. Add your feature to `allFeaturesWithMonitoring` (also in the `Features` object).
 
 ### Testing your changes

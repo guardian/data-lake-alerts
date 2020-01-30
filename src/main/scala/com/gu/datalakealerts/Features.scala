@@ -2,9 +2,8 @@ package com.gu.datalakealerts
 
 import java.time.LocalDate
 
-import com.amazonaws.services.athena.model.ResultSet
-import com.gu.datalakealerts.Platforms.{ Android, Platform, iOS }
-import com.gu.datalakealerts.apps.ResultHandler
+import com.gu.datalakealerts.Checks.{ Check, TotalImpressionsIsGreaterThan }
+import com.gu.datalakealerts.Platforms.{ Android, Platform, Ios }
 
 object Features {
 
@@ -18,14 +17,12 @@ object Features {
       .getOrElse(throw new RuntimeException(s"Invalid feature specified: features with monitoring are ${allFeaturesWithMonitoring.map(_.id)}"))
   }
 
-  case class MonitoringQuery(query: String, minimumImpressionsThreshold: Int)
-  case class MonitoringQueryResult(resultIsAcceptable: Boolean, additionalInformation: String)
+  case class MonitoringQuery(query: String, checks: List[Check])
 
   sealed trait Feature {
     val id: String
-    val platformsToMonitor: List[Platform] = List(iOS, Android)
+    val platformsToMonitor: List[Platform] = List(Ios, Android)
     def monitoringQuery(platform: Platform): MonitoringQuery
-    def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult
   }
 
   case object FrictionScreen extends Feature {
@@ -46,28 +43,26 @@ object Features {
 
       val minimumImpressionsThreshold = platform match {
         case Android => 10000
-        case iOS => 40000
+        case Ios => 40000
       }
 
-      MonitoringQuery(query, minimumImpressionsThreshold)
+      val checks: List[Check] = List(TotalImpressionsIsGreaterThan(minimumImpressionsThreshold))
+
+      MonitoringQuery(query, checks)
 
     }
-
-    def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
-      ResultHandler.checkThresholdMetAcrossAppVersions(resultSet, minimumImpressionsThreshold)
 
   }
 
   case object OlgilEpic extends Feature {
-    val id = "olgil_epic"
 
-    def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
-      ResultHandler.checkThresholdMetAcrossAppVersions(resultSet, minimumImpressionsThreshold)
+    val id = "olgil_epic"
 
     def monitoringQuery(platform: Platform): MonitoringQuery = {
       platform match {
         case Android =>
-          MonitoringQuery(s"""
+          MonitoringQuery(
+            s"""
             |select browser_version, count (distinct page_view_id) as epic_impressions
             |from clean.pageview
             |cross join unnest (ab_tests) x (ab)
@@ -77,9 +72,11 @@ object Features {
             |and ab.name like '%epic%'
             |and ab.completed = True
             |group by 1
-          """.stripMargin, 48305)
-        case iOS =>
-          MonitoringQuery(s"""
+          """.stripMargin,
+            List(TotalImpressionsIsGreaterThan(48305)))
+        case Ios =>
+          MonitoringQuery(
+            s"""
             |select browser_version, count (distinct page_view_id) as epic_impressions
             |from clean.pageview
             |cross join unnest (ab_tests) x (ab)
@@ -89,32 +86,34 @@ object Features {
             |and ab.name like '%epic%'
             |and ab.completed = False
             |group by 1
-          """.stripMargin, 185000)
+          """.stripMargin,
+            List(TotalImpressionsIsGreaterThan(185000)))
       }
     }
   }
 
   case object BrazeEpic extends Feature {
-    val id = "braze_epic"
 
-    def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
-      ResultHandler.checkThresholdMetAcrossAppVersions(resultSet, minimumImpressionsThreshold)
+    val id = "braze_epic"
 
     def monitoringQuery(platform: Platform): MonitoringQuery = {
       platform match {
         case Android =>
-          MonitoringQuery(s"""
-                             |select browser_version, count (distinct page_view_id)
-                             |from clean.pageview
-                             |cross join unnest (component_events) x (c)
-                             |where received_date = date '$yesterday'
-                             |and device_type like '%ANDROID%'
-                             |and c.component.type = 'APP_EPIC'
-                             |and c.action = 'VIEW'
-                             |group by 1
-          """.stripMargin, 162170)
-        case iOS =>
-          MonitoringQuery(s"""
+          MonitoringQuery(
+            s"""
+            |select browser_version, count (distinct page_view_id)
+            |from clean.pageview
+            |cross join unnest (component_events) x (c)
+            |where received_date = date '$yesterday'
+            |and device_type like '%ANDROID%'
+            |and c.component.type = 'APP_EPIC'
+            |and c.action = 'VIEW'
+            |group by 1
+          """.stripMargin,
+            List(TotalImpressionsIsGreaterThan(162170)))
+        case Ios =>
+          MonitoringQuery(
+            s"""
             |select browser_version, count (distinct page_view_id)
             |from clean.pageview 
             |cross join unnest (component_events) x (c)
@@ -123,21 +122,22 @@ object Features {
             |and c.component.type = 'APP_EPIC'
             |and c.action = 'VIEW'
             |group by 1
-          """.stripMargin, 103000)
+          """.stripMargin,
+            List(TotalImpressionsIsGreaterThan(103000)))
       }
     }
   }
   case object OlgilBanner extends Feature {
-    val id = "olgil_banner"
-    override val platformsToMonitor = List(iOS)
 
-    def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
-      ResultHandler.checkThresholdMetAcrossAppVersions(resultSet, minimumImpressionsThreshold)
+    val id = "olgil_banner"
+
+    override val platformsToMonitor = List(Ios)
 
     def monitoringQuery(platform: Platform): MonitoringQuery = {
       platform match {
-        case iOS =>
-          MonitoringQuery(s"""
+        case Ios =>
+          MonitoringQuery(
+            s"""
             |select browser_version, count (distinct page_view_id) as banner_impressions
             |from clean.pageview
             |cross join unnest (ab_tests) x (ab)
@@ -147,24 +147,24 @@ object Features {
             |and ab.name like '%banner%'
             |and ab.completed = False
             |group by 1
-          """.stripMargin, 17038)
-        case _ => throw new RuntimeException("Only iOS platform is supported.")
-
+          """.stripMargin,
+            List(TotalImpressionsIsGreaterThan(17038)))
+        case _ => throw new RuntimeException(s"Only Ios platform is supported for feature: $id.")
       }
     }
   }
 
   case object BrazeBanner extends Feature {
-    val id = "braze_banner"
-    override val platformsToMonitor = List(iOS)
 
-    def monitoringQueryResult(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult =
-      ResultHandler.checkThresholdMetAcrossAppVersions(resultSet, minimumImpressionsThreshold)
+    val id = "braze_banner"
+
+    override val platformsToMonitor = List(Ios)
 
     def monitoringQuery(platform: Platform): MonitoringQuery = {
       platform match {
-        case iOS =>
-          MonitoringQuery(s"""
+        case Ios =>
+          MonitoringQuery(
+            s"""
             |select browser_version, count (distinct page_view_id)
             |from clean.pageview 
             |cross join unnest (component_events) x (c)
@@ -173,8 +173,9 @@ object Features {
             |and c.component.type = 'APP_ENGAGEMENT_BANNER'
             |and c.action = 'VIEW'
             |group by 1
-          """.stripMargin, 2893)
-        case _ => throw new RuntimeException("Only iOS platform is supported.")
+            """.stripMargin,
+            List(TotalImpressionsIsGreaterThan(2893)))
+        case _ => throw new RuntimeException(s"Only Ios platform is supported for feature: $id.")
       }
     }
   }

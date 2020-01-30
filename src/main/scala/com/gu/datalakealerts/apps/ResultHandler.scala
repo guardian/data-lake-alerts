@@ -1,8 +1,7 @@
 package com.gu.datalakealerts.apps
 
 import com.amazonaws.services.athena.model.ResultSet
-import com.gu.datalakealerts.AlertInformation
-import com.gu.datalakealerts.Features.MonitoringQueryResult
+
 import scala.collection.JavaConverters._
 
 object ResultHandler {
@@ -20,13 +19,10 @@ object ResultHandler {
       }
     }
 
-  }
+    def getTotalImpressions(allVersionWithImpressionCounts: List[VersionWithImpressionCount]): Int = {
+      allVersionWithImpressionCounts.map(_.impressions).sum
+    }
 
-  def checkThresholdMetAcrossAppVersions(resultSet: ResultSet, minimumImpressionsThreshold: Int): MonitoringQueryResult = {
-    val impressionCountsByAppVersion = ImpressionCounts.getImpressionCounts(resultSet)
-    val totalImpressions = impressionCountsByAppVersion.map(_.impressions).sum
-    val resultIsAcceptable = totalImpressions > minimumImpressionsThreshold
-    MonitoringQueryResult(resultIsAcceptable, AlertInformation.describeResults(totalImpressions, minimumImpressionsThreshold))
   }
 
 }

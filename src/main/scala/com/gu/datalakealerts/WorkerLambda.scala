@@ -10,6 +10,7 @@ import com.gu.datalakealerts.EventModels.{ MonitoringEvent, MonitoringEventWithQ
 import com.gu.datalakealerts.Features.Feature
 import com.gu.datalakealerts.WorkerLambda.logger
 import com.gu.datalakealerts.Platforms.Platform
+import com.gu.datalakealerts.apps.ResultHandler.ImpressionCounts
 import org.slf4j.{ Logger, LoggerFactory }
 import io.circe.parser.decode
 
@@ -97,18 +98,20 @@ object WorkerLambda {
   }
 
   def analyseQueryResults(feature: Feature, platform: Platform, queryExecutionId: String) = {
-    val monitoringResult = feature.monitoringQueryResult(
-      Athena.retrieveResult(queryExecutionId),
-      feature.monitoringQuery(platform).minimumImpressionsThreshold)
-    if (!monitoringResult.resultIsAcceptable) {
+    val athenaResults = Athena.retrieveResult(queryExecutionId)
+    val impressionCountsByVersion = ImpressionCounts.getImpressionCounts(athenaResults)
+    val checksToRun = feature.monitoringQuery(platform).checks
+    val allResults = Checks.performChecks(impressionCountsByVersion, checksToRun)
+    val failures = allResults.filter(_.resultIsAcceptable == false)
+    if (failures.nonEmpty) {
       Notifications.alert(
         feature = feature,
         executionId = queryExecutionId,
-        monitoringResult.additionalInformation,
+        Checks.messageFromFailures(failures),
         stackForProductionAlerts = Stack(platform.id) //This stack will be overridden in other environments (to avoid spam)
       )
     } else {
-      logger.info(s"Monitoring ran successfully for ${feature.id} on ${platform.id}. No problems were detected.\n${monitoringResult.additionalInformation}.")
+      logger.info(s"Monitoring ran successfully for ${feature.id} on ${platform.id}. No problems were detected.\n${Checks.summariseResults(allResults)}.")
     }
   }
 
