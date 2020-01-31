@@ -21,7 +21,7 @@ object Checks {
     def checkThresholdMetAcrossAppVersions(allVersionWithImpressionCounts: List[VersionWithImpressionCount], minimumImpressionsThreshold: Int): IndividualResult = {
       val totalImpressions = ImpressionCounts.getTotalImpressions(allVersionWithImpressionCounts)
       val resultIsAcceptable = totalImpressions > minimumImpressionsThreshold
-      IndividualResult(resultIsAcceptable, "MinimumThresholdIsGreaterThan", ResultInformation.describeResults(totalImpressions, expectedImpressions))
+      IndividualResult(resultIsAcceptable, "TotalImpressionsIsGreaterThan", ResultInformation.describeResults(totalImpressions, expectedImpressions))
     }
   }
 
