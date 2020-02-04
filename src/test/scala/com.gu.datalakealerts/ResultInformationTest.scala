@@ -1,9 +1,9 @@
 package com.gu.datalakealerts
 
 import org.scalatest._
-import AlertInformation._
+import ResultInformation._
 
-class AlertInformationTest extends FlatSpec {
+class ResultInformationTest extends FlatSpec {
 
   "percentageChange" should "correctly calculate the percentage change if the threshold is exceeded" in {
     val result = percentageChange(actualImpressions = 110, expectedImpressions = 100)

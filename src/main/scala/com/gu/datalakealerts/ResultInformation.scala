@@ -2,7 +2,7 @@ package com.gu.datalakealerts
 
 import java.text.NumberFormat
 
-object AlertInformation {
+object ResultInformation {
 
   def percentageChange(actualImpressions: Int, expectedImpressions: Int): BigDecimal = {
     BigDecimal((actualImpressions.toDouble / expectedImpressions.toDouble) - 1).setScale(2, BigDecimal.RoundingMode.HALF_UP)
