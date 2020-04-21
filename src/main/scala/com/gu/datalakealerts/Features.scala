@@ -1,9 +1,9 @@
 package com.gu.datalakealerts
 
-import java.time.LocalDate
+import java.time.{ DayOfWeek, LocalDate }
 
 import com.gu.datalakealerts.Checks.{ Check, TotalImpressionsIsGreaterThan }
-import com.gu.datalakealerts.Platforms.{ Android, Platform, Ios }
+import com.gu.datalakealerts.Platforms.{ Android, Ios, Platform }
 
 object Features {
 
@@ -41,9 +41,18 @@ object Features {
         |and c.component.campaign_code like '%friction%' and c.component.campaign_code like '%subscription_screen%'
         |group by 1""".stripMargin
 
+      // Users with personalised ads enabled should now only see the friction screen on Fri/Sat
+      val peakDays = List(DayOfWeek.FRIDAY, DayOfWeek.SATURDAY)
+      // Users with personalised ads disabled will still see friction screens on other days
+      val offPeakDays = DayOfWeek.values().toList.diff(peakDays)
+
+      val dayOfWeek = LocalDate.now().getDayOfWeek
+
       val minimumImpressionsThreshold = platform match {
-        case Android => 10000
-        case Ios => 40000
+        case Android if peakDays.contains(dayOfWeek) => 45000
+        case Android if offPeakDays.contains(dayOfWeek) => 4000
+        case Ios if peakDays.contains(dayOfWeek) => 75000
+        case Ios if offPeakDays.contains(dayOfWeek) => 22000
       }
 
       val checks: List[Check] = List(TotalImpressionsIsGreaterThan(minimumImpressionsThreshold))
