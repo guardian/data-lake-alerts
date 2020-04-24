@@ -46,13 +46,13 @@ object Features {
       // Users with personalised ads disabled will still see friction screens on other days
       val offPeakDays = DayOfWeek.values().toList.diff(peakDays)
 
-      val dayOfWeek = LocalDate.now().getDayOfWeek
+      val dayOfWeekUnderAnalysis = yesterday.getDayOfWeek
 
       val minimumImpressionsThreshold = platform match {
-        case Android if peakDays.contains(dayOfWeek) => 45000
-        case Android if offPeakDays.contains(dayOfWeek) => 4000
-        case Ios if peakDays.contains(dayOfWeek) => 75000
-        case Ios if offPeakDays.contains(dayOfWeek) => 22000
+        case Android if peakDays.contains(dayOfWeekUnderAnalysis) => 45000
+        case Android if offPeakDays.contains(dayOfWeekUnderAnalysis) => 4000
+        case Ios if peakDays.contains(dayOfWeekUnderAnalysis) => 75000
+        case Ios if offPeakDays.contains(dayOfWeekUnderAnalysis) => 22000
       }
 
       val checks: List[Check] = List(TotalImpressionsIsGreaterThan(minimumImpressionsThreshold))
