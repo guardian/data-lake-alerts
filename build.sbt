@@ -24,7 +24,7 @@ libraryDependencies ++= Seq(
   "com.amazonaws" % "aws-java-sdk-athena" % awsJavaSdkVersion,
   "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
   "com.amazonaws" % "aws-lambda-java-events" % "2.2.7",
-  "com.amazonaws" % "aws-lambda-java-log4j2" % "1.3.0",
+  "com.amazonaws" % "aws-lambda-java-log4j2" % "1.5.1",
   "com.gu" %% "anghammarad-client" % "1.0.4",
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
